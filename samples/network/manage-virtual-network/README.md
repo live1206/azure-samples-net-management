@@ -17,7 +17,10 @@ This project framework provides examples for the following services:
 
 ### Network
 
-- You can find the details for the library [here](https://azure.github.io/azure-sdk/releases/latest/mgmt/dotnet.html).
+| SDK | Source | Project |
+| --- | --- | --- |
+| Track 1 (`Microsoft.Azure.Management.Fluent`) | `Program.Track1.cs` | `ManageVirtualNetwork.Track1.csproj` |
+| Track 2 (`Azure.ResourceManager.*`) | `Program.cs` | `ManageVirtualNetwork.csproj` |
 
 ## Getting Started
 
@@ -99,7 +102,24 @@ git clone https://github.com/Azure-Samples/azure-samples-net-management.git
 cd samples/network/manage-virtual-network
 ```
 
-3. Run the application with the `dotnet run` command.
+3. Run either implementation with `dotnet run --project <project>`.
+
+### Running the benchmarks
+
+The samples and benchmark target .NET Core 3.1, .NET 8, and .NET 10. Run the
+mock server and benchmark together with:
+
+```bash
+# .NET 8 (default)
+./run-benchmarks.sh
+
+BENCHMARK_FRAMEWORK=netcoreapp3.1 ./run-benchmarks.sh
+BENCHMARK_FRAMEWORK=net10.0 ./run-benchmarks.sh
+```
+
+See [`BENCHMARK_RESULTS.md`](BENCHMARK_RESULTS.md) for recorded results and
+[`../manage-ip-address/BENCHMARK_PROCESS.md`](../manage-ip-address/BENCHMARK_PROCESS.md)
+for the reusable process.
 
 ## This sample shows how to do following operations to manage Virtual Network
 

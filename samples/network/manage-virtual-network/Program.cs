@@ -2,6 +2,7 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 using Azure.Core;
+using Azure.Core.Pipeline;
 using Azure.Identity;
 using Azure.ResourceManager;
 using Azure.ResourceManager.Compute;
@@ -11,361 +12,259 @@ using Azure.ResourceManager.Network.Models;
 using Azure.ResourceManager.Resources;
 using System;
 using System.Linq;
+using System.Net.Http;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace ManageVirtualNetwork
 {
     public class Program
     {
-        // Azure Network sample for managing virtual networks.
-        //  - Create a virtual network with Subnets
-        //  - Update a virtual network
-        //  - Create virtual machines in the virtual network subnets
-        //  - Create another virtual network
-        //  - List virtual networks
-        public static async Task RunSample()
+        private const string UserName = "tirekicker";
+        private const string SshKey = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC+wWK73dCr+jgQOAxNsHAnNNNMEMWOHYEccp6wJm2gotpr9katuF/ZAdou5AaW1C61slRkHRkpRRX9FA9CYBiitZgvCCz+3nWNN7l/Up54Zps/pHWGZLHNJZRYyAB6j5yVLMVHIHriY49d/GZTZVNB8GoJv9Gakwc/fuEZYYl4YDFiGMBP///TzlI4jhiJzjKnEvqPFki5p2ZRJqcbCiF4pJrxUQR/RXqVFQdbRLZgYfJ8xGB878RENq3yQ39d8dVOkq4edbkzwcUmwwwkYVPIoDGsYLaRHnG+To7FvMeyO7xDVQkMKzopTQV8AuKpyvpqu0a9pWOMaiCyDytO7GGN you@me.com";
+
+        public static async Task RunSample(ArmClient client, string subscriptionId)
         {
-            const string ResourceGroupName = "rgNEMV";
-            const string VnetName1 = "vnet1";
-            const string VnetName2 = "vnet2";
-            const string FrontEndVmName = "fevm";
-            const string BackEndVmName = "bevm";
-            const string VNet1FrontEndSubnetName = "frontend";
-            const string VNet1BackEndSubnetName = "backend";
-            const string VNet1FrontEndSubnetNsgName = "frontendnsg";
-            const string VNet1BackEndSubnetNsgName = "backendnsg";
-            const string UserName = "tirekicker";
-            const string SshKey = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC+wWK73dCr+jgQOAxNsHAnNNNMEMWOHYEccp6wJm2gotpr9katuF/ZAdou5AaW1C61slRkHRkpRRX9FA9CYBiitZgvCCz+3nWNN7l/Up54Zps/pHWGZLHNJZRYyAB6j5yVLMVHIHriY49d/GZTZVNB8GoJv9Gakwc/fuEZYYl4YDFiGMBP///TzlI4jhiJzjKnEvqPFki5p2ZRJqcbCiF4pJrxUQR/RXqVFQdbRLZgYfJ8xGB878RENq3yQ39d8dVOkq4edbkzwcUmwwwkYVPIoDGsYLaRHnG+To7FvMeyO7xDVQkMKzopTQV8AuKpyvpqu0a9pWOMaiCyDytO7GGN you@me.com";
-            var location = AzureLocation.EastUS;
+            string suffix = Guid.NewGuid().ToString("N").Substring(0, 8);
+            string resourceGroupName = $"rgNEMV-{suffix}";
+            string vnetName1 = $"vnet1-{suffix}";
+            string vnetName2 = $"vnet2-{suffix}";
+            string frontEndVmName = $"fevm{suffix}";
+            string backEndVmName = $"bevm{suffix}";
+            string frontEndSubnetName = "frontend";
+            string backEndSubnetName = "backend";
+            string frontEndNsgName = $"frontendnsg-{suffix}";
+            string backEndNsgName = $"backendnsg-{suffix}";
+            AzureLocation location = AzureLocation.EastUS;
+            ResourceGroupResource resourceGroup = null;
 
-
-            // create an ArmClient as the entry of all resource management API
-            var clientId = Environment.GetEnvironmentVariable("CLIENT_ID");
-            var clientSecret = Environment.GetEnvironmentVariable("CLIENT_SECRET");
-            var tenantId = Environment.GetEnvironmentVariable("TENANT_ID");
-            var subscription = Environment.GetEnvironmentVariable("SUBSCRIPTION_ID");
-            ClientSecretCredential credential = new ClientSecretCredential(tenantId, clientId, clientSecret);
-            ArmClient client = new ArmClient(credential, subscription);
-
-            // implicit conversion from Resource<ResourceGroup> to ResourceGroup, similar cases can be found below
-            ResourceGroupResource resourceGroup = (await client.GetDefaultSubscription().GetResourceGroups().CreateOrUpdateAsync(Azure.WaitUntil.Completed, ResourceGroupName, new ResourceGroupData(location))).Value;
-
-            // Create a virtual network with specific address-space and two subnet
-
-            // Creates a network security group for backend subnet
-            Console.WriteLine("Creating a network security group for virtual network backend subnet...");
-            var networkSecurityGroupData = new NetworkSecurityGroupData()
+            try
             {
-                Location = location,
-                SecurityRules = {
-                    new SecurityRuleData
-                    {
-                        Name = "DenyInternetInComing",
-                        Priority = 700,
-                        Access = SecurityRuleAccess.Deny,
-                        Direction = SecurityRuleDirection.Inbound,
-                        SourceAddressPrefix = "Internet",
-                        SourcePortRange = "*",
-                        DestinationAddressPrefix = "*",
-                        DestinationPortRange = "*",
-                        Protocol = SecurityRuleProtocol.Asterisk
-                    },
-                    new SecurityRuleData
-                    {
-                        Name = "DenyInternetOutGoing",
-                        Priority = 701,
-                        Access = SecurityRuleAccess.Deny,
-                        Direction = SecurityRuleDirection.Outbound,
-                        SourceAddressPrefix = "*",
-                        SourcePortRange = "*",
-                        DestinationAddressPrefix = "*",
-                        DestinationPortRange = "*",
-                        Protocol = SecurityRuleProtocol.Asterisk
-                    }
-                }
-            };
+                var subscription = client.GetSubscriptionResource(new ResourceIdentifier($"/subscriptions/{subscriptionId}"));
+                resourceGroup = (await subscription.GetResourceGroups().CreateOrUpdateAsync(
+                    Azure.WaitUntil.Completed, resourceGroupName, new ResourceGroupData(location))).Value;
 
-            var networkSecurityGroupContainer = resourceGroup.GetNetworkSecurityGroups();
-            var backendSubnetNsg = (await networkSecurityGroupContainer.CreateOrUpdateAsync(Azure.WaitUntil.Completed, VNet1BackEndSubnetNsgName, networkSecurityGroupData)).Value;
-            Console.WriteLine($"Created backend network security group {backendSubnetNsg.Id}");
+                var nsgs = resourceGroup.GetNetworkSecurityGroups();
+                var backEndNsg = (await nsgs.CreateOrUpdateAsync(
+                    Azure.WaitUntil.Completed, backEndNsgName, CreateBackEndNsg(location))).Value;
+                var frontEndNsg = (await nsgs.CreateOrUpdateAsync(
+                    Azure.WaitUntil.Completed, frontEndNsgName, CreateFrontEndNsg(location))).Value;
 
-            Console.WriteLine("Creating a network security group for virtual network frontend subnet...");
-            networkSecurityGroupData = new NetworkSecurityGroupData()
-            {
-                Location = location,
-                SecurityRules = {
-                    new SecurityRuleData
+                var networks = resourceGroup.GetVirtualNetworks();
+                var virtualNetwork1 = (await networks.CreateOrUpdateAsync(
+                    Azure.WaitUntil.Completed, vnetName1,
+                    CreateVirtualNetworkData(location, frontEndSubnetName, backEndSubnetName, null, backEndNsg.Id))).Value;
+
+                virtualNetwork1 = (await networks.CreateOrUpdateAsync(
+                    Azure.WaitUntil.Completed, vnetName1,
+                    CreateVirtualNetworkData(location, frontEndSubnetName, backEndSubnetName, frontEndNsg.Id, backEndNsg.Id))).Value;
+
+                var publicIPAddress = (await resourceGroup.GetPublicIPAddresses().CreateOrUpdateAsync(
+                    Azure.WaitUntil.Completed, $"{frontEndVmName}-ip",
+                    new PublicIPAddressData
                     {
-                        Name = "AllowHttpInComing",
-                        Priority = 700,
-                        Access = SecurityRuleAccess.Allow,
-                        Direction = SecurityRuleDirection.Inbound,
-                        SourceAddressPrefix = "Internet",
-                        SourcePortRange = "*",
-                        DestinationAddressPrefix = "*",
-                        DestinationPortRange = "80",
-                        Protocol = SecurityRuleProtocol.Tcp
-                    },
-                    new SecurityRuleData
-                    {
-                        Name = "DenyInternetOutGoing",
-                        Priority = 701,
-                        Access = SecurityRuleAccess.Deny,
-                        Direction = SecurityRuleDirection.Outbound,
-                        SourceAddressPrefix = "*",
-                        SourcePortRange = "*",
-                        DestinationAddressPrefix = "INTERNET",
-                        DestinationPortRange = "*",
-                        Protocol = SecurityRuleProtocol.Asterisk
-                    }
-                }
-            };
+                        Location = location,
+                        PublicIPAddressVersion = NetworkIPVersion.IPv4,
+                        PublicIPAllocationMethod = NetworkIPAllocationMethod.Dynamic
+                    })).Value;
 
-            var frontendSubnetNsg = (await networkSecurityGroupContainer.CreateOrUpdateAsync(Azure.WaitUntil.Completed, VNet1FrontEndSubnetNsgName, networkSecurityGroupData)).Value;
-            Console.WriteLine($"Created frontend network security group {frontendSubnetNsg.Id}");
+                ResourceIdentifier frontEndSubnetId = virtualNetwork1.Data.Subnets.Single(s => s.Name == frontEndSubnetName).Id;
+                ResourceIdentifier backEndSubnetId = virtualNetwork1.Data.Subnets.Single(s => s.Name == backEndSubnetName).Id;
+                var networkInterfaces = resourceGroup.GetNetworkInterfaces();
+                var frontEndNic = (await networkInterfaces.CreateOrUpdateAsync(
+                    Azure.WaitUntil.Completed, $"{frontEndVmName}-nic",
+                    CreateNetworkInterfaceData(location, frontEndSubnetId, publicIPAddress.Id))).Value;
+                var backEndNic = (await networkInterfaces.CreateOrUpdateAsync(
+                    Azure.WaitUntil.Completed, $"{backEndVmName}-nic",
+                    CreateNetworkInterfaceData(location, backEndSubnetId, null))).Value;
 
-            Console.WriteLine("Creating virtual network #1...");
-            var virtualNetworkData = new VirtualNetworkData
-            {
-                Location = location,
-                AddressPrefixes =
+                var virtualMachines = resourceGroup.GetVirtualMachines();
+                await virtualMachines.CreateOrUpdateAsync(
+                    Azure.WaitUntil.Completed, frontEndVmName,
+                    CreateVirtualMachineData(location, frontEndVmName, frontEndNic.Id));
+                await virtualMachines.CreateOrUpdateAsync(
+                    Azure.WaitUntil.Completed, backEndVmName,
+                    CreateVirtualMachineData(location, backEndVmName, backEndNic.Id));
+
+                var virtualNetwork2 = (await networks.CreateOrUpdateAsync(
+                    Azure.WaitUntil.Completed, vnetName2,
+                    new VirtualNetworkData { Location = location, AddressPrefixes = { "10.0.0.0/16" } })).Value;
+
+                await foreach (var virtualNetwork in networks.GetAllAsync())
                 {
-                    "192.168.0.0/16"
-                },
-                Subnets = {
-                    new SubnetData
+                    _ = virtualNetwork.Id;
+                }
+
+                await virtualNetwork2.DeleteAsync(Azure.WaitUntil.Completed);
+            }
+            finally
+            {
+                if (resourceGroup != null)
+                {
+                    try
                     {
-                        Name = VNet1FrontEndSubnetName,
-                        AddressPrefix = "192.168.1.0/24",
-                    },
-                    new SubnetData
+                        await resourceGroup.DeleteAsync(Azure.WaitUntil.Completed);
+                    }
+                    catch (Exception ex)
                     {
-                        Name = VNet1BackEndSubnetName,
-                        AddressPrefix = "192.168.2.0/24",
-                        NetworkSecurityGroup = backendSubnetNsg.Data
+                        Console.WriteLine(ex);
                     }
                 }
-            };
-            var virtualNetworkContainer = resourceGroup.GetVirtualNetworks();
-            var virtualNetwork1 = (await virtualNetworkContainer.CreateOrUpdateAsync(Azure.WaitUntil.Completed, VnetName1, virtualNetworkData)).Value;
-            Console.WriteLine($"Created a virtual network {virtualNetwork1.Id}");
+            }
+        }
 
-            // Update a virtual network
-            // Update the virtual network frontend subnet by associating it with network security group
-            Console.WriteLine("Associating network security group rule to frontend subnet");
+        private static NetworkSecurityGroupData CreateBackEndNsg(AzureLocation location) => new NetworkSecurityGroupData
+        {
+            Location = location,
+            SecurityRules =
+            {
+                CreateSecurityRule("DenyInternetInComing", 700, SecurityRuleAccess.Deny, SecurityRuleDirection.Inbound, "Internet", "*", "*"),
+                CreateSecurityRule("DenyInternetOutGoing", 701, SecurityRuleAccess.Deny, SecurityRuleDirection.Outbound, "*", "Internet", "*")
+            }
+        };
 
-            virtualNetworkData = new VirtualNetworkData
+        private static NetworkSecurityGroupData CreateFrontEndNsg(AzureLocation location) => new NetworkSecurityGroupData
+        {
+            Location = location,
+            SecurityRules =
+            {
+                CreateSecurityRule("AllowHttpInComing", 700, SecurityRuleAccess.Allow, SecurityRuleDirection.Inbound, "Internet", "*", "80", SecurityRuleProtocol.Tcp),
+                CreateSecurityRule("DenyInternetOutGoing", 701, SecurityRuleAccess.Deny, SecurityRuleDirection.Outbound, "*", "Internet", "*")
+            }
+        };
+
+        private static SecurityRuleData CreateSecurityRule(string name, int priority, SecurityRuleAccess access,
+            SecurityRuleDirection direction, string source, string destination, string destinationPort,
+            SecurityRuleProtocol? protocol = null) => new SecurityRuleData
+        {
+            Name = name,
+            Priority = priority,
+            Access = access,
+            Direction = direction,
+            SourceAddressPrefix = source,
+            SourcePortRange = "*",
+            DestinationAddressPrefix = destination,
+            DestinationPortRange = destinationPort,
+            Protocol = protocol ?? SecurityRuleProtocol.Asterisk
+        };
+
+        private static VirtualNetworkData CreateVirtualNetworkData(AzureLocation location, string frontEndSubnetName,
+            string backEndSubnetName, ResourceIdentifier frontEndNsgId, ResourceIdentifier backEndNsgId)
+        {
+            var frontEndSubnet = new SubnetData { Name = frontEndSubnetName, AddressPrefix = "192.168.1.0/24" };
+            if (frontEndNsgId != null) frontEndSubnet.NetworkSecurityGroup = new NetworkSecurityGroupData { Id = frontEndNsgId };
+            return new VirtualNetworkData
             {
                 Location = location,
                 AddressPrefixes = { "192.168.0.0/16" },
-                Subnets = {
+                Subnets =
+                {
+                    frontEndSubnet,
                     new SubnetData
                     {
-                        Name = VNet1FrontEndSubnetName,
-                        AddressPrefix = "192.168.1.0/24",
-                        NetworkSecurityGroup = frontendSubnetNsg.Data
-                    },
-                    new SubnetData
-                    {
-                        Name = VNet1BackEndSubnetName,
+                        Name = backEndSubnetName,
                         AddressPrefix = "192.168.2.0/24",
-                        NetworkSecurityGroup = backendSubnetNsg.Data
+                        NetworkSecurityGroup = new NetworkSecurityGroupData { Id = backEndNsgId }
                     }
                 }
             };
-            var virtualNetwork2 = (await virtualNetworkContainer.CreateOrUpdateAsync(Azure.WaitUntil.Completed, VnetName1, virtualNetworkData)).Value;
-            Console.WriteLine("Network security group rule associated with the frontend subnet");
+        }
 
-            Console.WriteLine("Creating Public IP Address #1...");
-
-            var ipAddressData = new PublicIPAddressData
+        private static NetworkInterfaceData CreateNetworkInterfaceData(AzureLocation location,
+            ResourceIdentifier subnetId, ResourceIdentifier publicIPAddressId)
+        {
+            var configuration = new NetworkInterfaceIPConfigurationData
             {
-                PublicIPAddressVersion = NetworkIPVersion.IPv4,
-                PublicIPAllocationMethod = NetworkIPAllocationMethod.Dynamic,
-                Location = location,
+                Name = "Primary",
+                Primary = true,
+                Subnet = new SubnetData { Id = subnetId },
+                PrivateIPAllocationMethod = NetworkIPAllocationMethod.Dynamic
             };
+            if (publicIPAddressId != null) configuration.PublicIPAddress = new PublicIPAddressData { Id = publicIPAddressId };
+            return new NetworkInterfaceData { Location = location, IPConfigurations = { configuration } };
+        }
 
-            var ipAddress = (await resourceGroup.GetPublicIPAddresses().CreateOrUpdateAsync(Azure.WaitUntil.Completed, FrontEndVmName + "_ip", ipAddressData)).Value;
-
-            Console.WriteLine("Creating Network Interface #1...");
-            var networkInterfaceData = new NetworkInterfaceData
+        private static VirtualMachineData CreateVirtualMachineData(AzureLocation location, string vmName, ResourceIdentifier nicId) =>
+            new VirtualMachineData(location)
             {
-                Location = location,
-                IPConfigurations =
+                NetworkProfile = new VirtualMachineNetworkProfile
                 {
-                    new NetworkInterfaceIPConfigurationData
-                    {
-                        Name = "Primary",
-                        Primary = true,
-                        Subnet = new SubnetData
-                        {
-                            Id = virtualNetwork1.Data.Subnets.First(s => s.Name == VNet1FrontEndSubnetName).Id
-                        },
-                        PrivateIPAllocationMethod = NetworkIPAllocationMethod.Dynamic,
-                        PublicIPAddress = new PublicIPAddressData { Id = ipAddress.Id }
-                    }
-                }
-            };
-            var networkInterfaceContainer = resourceGroup.GetNetworkInterfaces();
-            var networkInterface = (await networkInterfaceContainer.CreateOrUpdateAsync(Azure.WaitUntil.Completed, FrontEndVmName + "_nic", networkInterfaceData)).Value;
-            Console.WriteLine("Created Network Interface #1...");
-
-            // Create a virtual machine in each subnet
-            // Creates the first virtual machine in frontend subnet
-            Console.WriteLine("Creating a Linux virtual machine in the frontend subnet");
-            var t1 = DateTime.UtcNow;
-            var virtualMachineData = new VirtualMachineData(location)
-            {
-                NetworkProfile = new VirtualMachineNetworkProfile()
-                {
-                    NetworkInterfaces =
-                    {
-                        new VirtualMachineNetworkInterfaceReference { Id = networkInterface.Id }
-                    }
+                    NetworkInterfaces = { new VirtualMachineNetworkInterfaceReference { Id = nicId, Primary = true } }
                 },
-                OSProfile = new VirtualMachineOSProfile()
+                OSProfile = new VirtualMachineOSProfile
                 {
-                    ComputerName = FrontEndVmName,
+                    ComputerName = vmName,
                     AdminUsername = UserName,
                     LinuxConfiguration = new LinuxConfiguration
                     {
                         DisablePasswordAuthentication = true,
-                        SshPublicKeys =
-                        {
-                            new SshPublicKeyConfiguration()
-                        {
-                            Path = $"/home/{UserName}/.ssh/authorized_keys",
-                            KeyData = SshKey
-                        }
-                        }
+                        SshPublicKeys = { new SshPublicKeyConfiguration { Path = $"/home/{UserName}/.ssh/authorized_keys", KeyData = SshKey } }
                     }
                 },
-                StorageProfile = new VirtualMachineStorageProfile()
+                StorageProfile = new VirtualMachineStorageProfile
                 {
                     ImageReference = new ImageReference
                     {
-                        Offer = "UbuntuServer",
-                        Publisher = "Canonical",
-                        Sku = "16.04-LTS",
-                        Version = "latest"
+                        Publisher = "Canonical", Offer = "UbuntuServer", Sku = "16.04-LTS", Version = "latest"
                     }
                 },
-                HardwareProfile = new VirtualMachineHardwareProfile()
-                {
-                    VmSize = VirtualMachineSizeType.StandardD3V2
-                }
+                HardwareProfile = new VirtualMachineHardwareProfile { VmSize = VirtualMachineSizeType.StandardD3V2 }
             };
 
-            var virtualMachineContainer = resourceGroup.GetVirtualMachines();
-            var frontendVM = (await virtualMachineContainer.CreateOrUpdateAsync(Azure.WaitUntil.Completed, FrontEndVmName, virtualMachineData)).Value;
-            var t2 = DateTime.UtcNow;
-            Console.WriteLine($"Created Linux VM: (took {(t2 - t1).TotalSeconds} seconds) {frontendVM.Id}");
-
-            // Create a virtual network with default address-space and one default subnet
-            Console.WriteLine("Creating Network Interface #2...");
-            networkInterfaceData = new NetworkInterfaceData
+        public static ArmClient CreateMockClient(string mockEndpoint, string subscriptionId)
+        {
+            var mockUri = new Uri(EnsureTrailingSlash(mockEndpoint));
+            var tlsEndpoint = new UriBuilder(mockUri) { Scheme = Uri.UriSchemeHttps, Port = mockUri.Port }.Uri;
+            var options = new ArmClientOptions
             {
-                Location = location,
-                IPConfigurations =
-                {
-                    new NetworkInterfaceIPConfigurationData
-                    {
-                        Name = "Primary",
-                        Primary = true,
-                        Subnet = new SubnetData
-                        {
-                            Id = virtualNetwork1.Data.Subnets.First(s => s.Name == VNet1BackEndSubnetName).Id
-                        },
-                        PrivateIPAllocationMethod = NetworkIPAllocationMethod.Dynamic,
-                    }
-                }
+                Environment = new ArmEnvironment(tlsEndpoint, "https://management.azure.com/"),
+                Transport = new HttpClientTransport(new HttpClient(new MockEndpointHandler()))
             };
-            var networkInterface2 = (await networkInterfaceContainer.CreateOrUpdateAsync(Azure.WaitUntil.Completed, BackEndVmName + "_nic", networkInterfaceData)).Value;
-            Console.WriteLine("Created Network Interface #2...");
-
-            // Creates the second virtual machine in the backend subnet
-            Console.WriteLine("Creating a Linux virtual machine in the backend subnet");
-            t1 = DateTime.UtcNow;
-            virtualMachineData = new VirtualMachineData(location)
-            {
-                NetworkProfile = new VirtualMachineNetworkProfile()
-                {
-                    NetworkInterfaces =
-                    {
-                        new VirtualMachineNetworkInterfaceReference { Id = networkInterface2.Id }
-                    }
-                },
-                OSProfile = new VirtualMachineOSProfile()
-                {
-                    ComputerName = FrontEndVmName,
-                    AdminUsername = UserName,
-                    LinuxConfiguration = new LinuxConfiguration
-                    {
-                        DisablePasswordAuthentication = true,
-                        SshPublicKeys =
-                        {
-                            new SshPublicKeyConfiguration()
-                        {
-                            Path = $"/home/{UserName}/.ssh/authorized_keys",
-                            KeyData = SshKey
-                        }
-                        }
-                    }
-                },
-                StorageProfile = new VirtualMachineStorageProfile()
-                {
-                    ImageReference = new ImageReference
-                    {
-                        Offer = "UbuntuServer",
-                        Publisher = "Canonical",
-                        Sku = "16.04-LTS",
-                        Version = "latest"
-                    },
-                },
-                HardwareProfile = new VirtualMachineHardwareProfile()
-                {
-                    VmSize = VirtualMachineSizeType.StandardD3V2
-                }
-            };
-
-            var backendVM = (await virtualMachineContainer.CreateOrUpdateAsync(Azure.WaitUntil.Completed, BackEndVmName, virtualMachineData)).Value;
-
-            var t3 = DateTime.UtcNow;
-            Console.WriteLine($"Created Linux VM: (took {(t3 - t1).TotalSeconds} seconds) {backendVM.Id}");
-
-            Console.WriteLine("Creating a virtual network #2");
-            var virtualNetwork3 = (await virtualNetworkContainer.CreateOrUpdateAsync(
-                Azure.WaitUntil.Completed, VnetName2,
-                new VirtualNetworkData
-                {
-                    Location = location,
-                    AddressPrefixes =
-                    {
-                        "10.0.0.0/16"
-                    }
-                })).Value;
-
-            Console.WriteLine("Created a virtual network #2");
-
-            // Delete a virtual network
-            Console.WriteLine("Deleting the virtual network");
-            await virtualNetwork3.DeleteAsync(Azure.WaitUntil.Completed);
-            Console.WriteLine("Deleted the virtual network");
-
-            // Delete resource group if necessary
-            // await resourceGroup.Delete().WaitForCompletionResponseAsync();
+            options.Retry.MaxRetries = 0;
+            return new ArmClient(new MockTokenCredential(), subscriptionId, options);
         }
 
         public static async Task Main(string[] args)
         {
             try
             {
-                await RunSample();
+                string subscriptionId = Environment.GetEnvironmentVariable("SUBSCRIPTION_ID") ?? "00000000-0000-0000-0000-000000000000";
+                string mockEndpoint = Environment.GetEnvironmentVariable("MOCK_ARM_ENDPOINT");
+                ArmClient client = string.IsNullOrEmpty(mockEndpoint)
+                    ? new ArmClient(new ClientSecretCredential(
+                        Environment.GetEnvironmentVariable("TENANT_ID"),
+                        Environment.GetEnvironmentVariable("CLIENT_ID"),
+                        Environment.GetEnvironmentVariable("CLIENT_SECRET")), subscriptionId)
+                    : CreateMockClient(mockEndpoint, subscriptionId);
+                await RunSample(client, subscriptionId);
             }
             catch (Exception ex)
             {
                 Console.WriteLine(ex);
             }
+        }
+
+        private static string EnsureTrailingSlash(string endpoint) => endpoint.EndsWith("/", StringComparison.Ordinal) ? endpoint : endpoint + "/";
+
+        private sealed class MockEndpointHandler : DelegatingHandler
+        {
+            public MockEndpointHandler()
+                : base(new HttpClientHandler())
+            {
+            }
+
+            protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+            {
+                request.RequestUri = new UriBuilder(request.RequestUri) { Scheme = Uri.UriSchemeHttp, Port = request.RequestUri.Port }.Uri;
+                return base.SendAsync(request, cancellationToken);
+            }
+        }
+
+        private sealed class MockTokenCredential : TokenCredential
+        {
+            private static readonly AccessToken Token = new AccessToken("mock-token", DateTimeOffset.MaxValue);
+            public override AccessToken GetToken(TokenRequestContext requestContext, CancellationToken cancellationToken) => Token;
+            public override ValueTask<AccessToken> GetTokenAsync(TokenRequestContext requestContext, CancellationToken cancellationToken) => new ValueTask<AccessToken>(Token);
         }
     }
 }
