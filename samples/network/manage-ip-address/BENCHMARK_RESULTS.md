@@ -24,7 +24,7 @@ Client construction and mock-server startup were performed outside the measured 
 | `net10.0` | .NET 10.0.11 (10.0.1126.37416) | x64 RyuJIT, AVX-512 |
 | Mock ARM server | .NET 8.0.30 | Separate process |
 
-Both the Track 1 and Track 2 sample assemblies target `netcoreapp3.1`. The multi-targeted benchmark executable loads those same assemblies into each selected runtime, ensuring that both SDK implementations use the same runtime during any individual comparison.
+The Track 1 sample, Track 2 sample, and benchmark executable all target `netcoreapp3.1`, `net8.0`, and `net10.0`. Each benchmark target references the matching sample target, so a .NET 8 benchmark uses the `net8.0` sample assemblies and a .NET 10 benchmark uses the `net10.0` sample assemblies.
 
 The projects were built with .NET SDK 10.0.400.
 
@@ -51,9 +51,9 @@ Track 1 is the baseline within each runtime.
 
 | Runtime | Track 1 mean | Track 2 mean | Track 2 time ratio | Track 1 allocated | Track 2 allocated | Track 2 allocation ratio |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: |
-| .NET Core 3.1.32 | 16.80 ms | 10.69 ms | 0.64 | 1047.08 KB | 549.21 KB | 0.52 |
-| .NET 8.0.30 | 18.63 ms | 11.94 ms | 0.64 | 896.47 KB | 392.44 KB | 0.44 |
-| .NET 10.0.11 | 19.85 ms | 11.59 ms | 0.59 | 899.83 KB | 392.65 KB | 0.44 |
+| .NET Core 3.1.32 | 16.14 ms | 10.88 ms | 0.68 | 1047.08 KB | 535.75 KB | 0.51 |
+| .NET 8.0.30 | 18.65 ms | 11.64 ms | 0.63 | 896.44 KB | 392.42 KB | 0.44 |
+| .NET 10.0.11 | 18.48 ms | 11.31 ms | 0.61 | 899.81 KB | 392.58 KB | 0.44 |
 
 ## Percentage comparison
 
@@ -71,11 +71,11 @@ This comparison holds the runtime constant and changes the SDK. Track 1 is the b
 
 | Runtime | Track 1 mean | Track 2 mean | Elapsed time saved by Track 2 | Allocation saved by Track 2 |
 | --- | ---: | ---: | ---: | ---: |
-| .NET Core 3.1.32 | 16.80 ms | 10.69 ms | 36.37% | 47.55% |
-| .NET 8.0.30 | 18.63 ms | 11.94 ms | 35.91% | 56.22% |
-| .NET 10.0.11 | 19.85 ms | 11.59 ms | 41.61% | 56.36% |
+| .NET Core 3.1.32 | 16.14 ms | 10.88 ms | 32.59% | 48.83% |
+| .NET 8.0.30 | 18.65 ms | 11.64 ms | 37.59% | 56.22% |
+| .NET 10.0.11 | 18.48 ms | 11.31 ms | 38.80% | 56.37% |
 
-For example, the .NET 10 row compares Track 2 on .NET 10 (11.59 ms) with Track 1 on .NET 10 (19.85 ms). It does not compare .NET 10 with .NET Core 3.1.
+For example, the .NET 10 row compares Track 2 on .NET 10 (11.31 ms) with Track 1 on .NET 10 (18.48 ms). It does not compare .NET 10 with .NET Core 3.1.
 
 ### Within-SDK runtime comparison: newer runtimes versus .NET Core 3.1
 
@@ -83,12 +83,12 @@ This comparison holds the SDK constant and changes the runtime. .NET Core 3.1 is
 
 | Implementation | Runtime | .NET Core 3.1 mean | Comparison mean | Elapsed time saved | Allocation saved |
 | --- | --- | ---: | ---: | ---: | ---: |
-| Track 1 Fluent | .NET 8.0.30 | 16.80 ms | 18.63 ms | -10.89% | 14.38% |
-| Track 1 Fluent | .NET 10.0.11 | 16.80 ms | 19.85 ms | -18.15% | 14.06% |
-| Track 2 ARM | .NET 8.0.30 | 10.69 ms | 11.94 ms | -11.69% | 28.54% |
-| Track 2 ARM | .NET 10.0.11 | 10.69 ms | 11.59 ms | -8.42% | 28.51% |
+| Track 1 Fluent | .NET 8.0.30 | 16.14 ms | 18.65 ms | -15.55% | 14.39% |
+| Track 1 Fluent | .NET 10.0.11 | 16.14 ms | 18.48 ms | -14.50% | 14.06% |
+| Track 2 ARM | .NET 8.0.30 | 10.88 ms | 11.64 ms | -6.99% | 26.75% |
+| Track 2 ARM | .NET 10.0.11 | 10.88 ms | 11.31 ms | -3.95% | 26.72% |
 
-For example, the Track 2/.NET 10 row compares Track 2 on .NET 10 (11.59 ms) with Track 2 on .NET Core 3.1 (10.69 ms). Therefore, Track 2 can be substantially faster than Track 1 when both use .NET 10, while also being slightly slower on .NET 10 than the same Track 2 code on .NET Core 3.1.
+For example, the Track 2/.NET 10 row compares Track 2 on .NET 10 (11.31 ms) with Track 2 on .NET Core 3.1 (10.88 ms). Therefore, Track 2 can be substantially faster than Track 1 when both use .NET 10, while also being slightly slower on .NET 10 than the same Track 2 code on .NET Core 3.1.
 
 The BenchmarkDotNet `Mean` values are wall-clock elapsed time for the client operation, not direct process CPU-utilization measurements. They are useful for comparing client-side completion time, but should not be labeled as measured CPU consumption.
 
@@ -98,22 +98,22 @@ The BenchmarkDotNet `Mean` values are wall-clock elapsed time for the client ope
 
 | Method | Mean | Error | StdDev | Ratio | RatioSD | Allocated | Allocation ratio |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
-| Track 2 ARM | 10.69 ms | 0.384 ms | 0.201 ms | 0.64 | 0.07 | 549.21 KB | 0.52 |
-| Track 1 Fluent | 16.80 ms | 2.917 ms | 1.929 ms | 1.01 | 0.15 | 1047.08 KB | 1.00 |
+| Track 2 ARM | 10.88 ms | 0.722 ms | 0.430 ms | 0.68 | 0.04 | 535.75 KB | 0.51 |
+| Track 1 Fluent | 16.14 ms | 1.029 ms | 0.681 ms | 1.00 | 0.06 | 1047.08 KB | 1.00 |
 
 ### .NET 8.0.30
 
 | Method | Mean | Error | StdDev | Ratio | RatioSD | Allocated | Allocation ratio |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
-| Track 2 ARM | 11.94 ms | 0.360 ms | 0.238 ms | 0.64 | 0.03 | 392.44 KB | 0.44 |
-| Track 1 Fluent | 18.63 ms | 1.322 ms | 0.875 ms | 1.00 | 0.06 | 896.47 KB | 1.00 |
+| Track 2 ARM | 11.64 ms | 0.379 ms | 0.250 ms | 0.63 | 0.03 | 392.42 KB | 0.44 |
+| Track 1 Fluent | 18.65 ms | 1.121 ms | 0.741 ms | 1.00 | 0.05 | 896.44 KB | 1.00 |
 
 ### .NET 10.0.11
 
 | Method | Mean | Error | StdDev | Ratio | RatioSD | Allocated | Allocation ratio |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
-| Track 2 ARM | 11.59 ms | 0.237 ms | 0.157 ms | 0.59 | 0.04 | 392.65 KB | 0.44 |
-| Track 1 Fluent | 19.85 ms | 1.961 ms | 1.297 ms | 1.00 | 0.09 | 899.83 KB | 1.00 |
+| Track 2 ARM | 11.31 ms | 0.408 ms | 0.243 ms | 0.61 | 0.04 | 392.58 KB | 0.44 |
+| Track 1 Fluent | 18.48 ms | 1.879 ms | 1.243 ms | 1.00 | 0.09 | 899.81 KB | 1.00 |
 
 ## Interpretation
 

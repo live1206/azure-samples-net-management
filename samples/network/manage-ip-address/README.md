@@ -127,8 +127,9 @@ The server exposes `GET /__mock/health` for readiness checks and
 ### Running the benchmarks
 
 The BenchmarkDotNet project measures the complete normalized management scenario
-for each SDK. Client creation and mock-server startup occur outside the measured
-benchmark operation.
+for each SDK. The Track 1 sample, Track 2 sample, and benchmark project are all
+multi-targeted so the selected benchmark framework uses matching sample assemblies.
+Client creation and mock-server startup occur outside the measured benchmark operation.
 
 Run the benchmark and its mock server together with one of the supported target frameworks:
 
