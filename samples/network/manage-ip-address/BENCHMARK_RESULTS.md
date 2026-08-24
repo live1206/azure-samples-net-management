@@ -65,28 +65,30 @@ The percentage saved is calculated as:
 
 A positive value means the comparison used less time or memory. A negative value means it used more.
 
-### Track 2 savings compared with Track 1
+### Within-runtime SDK comparison: Track 2 versus Track 1
 
-Track 1 is the baseline in this table.
+This comparison holds the runtime constant and changes the SDK. Track 1 is the baseline for each row.
 
-| Runtime | Elapsed time saved by Track 2 | Allocation saved by Track 2 |
-| --- | ---: | ---: |
-| .NET Core 3.1.32 | 36.37% | 47.55% |
-| .NET 8.0.30 | 35.91% | 56.22% |
-| .NET 10.0.11 | 41.61% | 56.36% |
+| Runtime | Track 1 mean | Track 2 mean | Elapsed time saved by Track 2 | Allocation saved by Track 2 |
+| --- | ---: | ---: | ---: | ---: |
+| .NET Core 3.1.32 | 16.80 ms | 10.69 ms | 36.37% | 47.55% |
+| .NET 8.0.30 | 18.63 ms | 11.94 ms | 35.91% | 56.22% |
+| .NET 10.0.11 | 19.85 ms | 11.59 ms | 41.61% | 56.36% |
 
-### Runtime savings compared with .NET Core 3.1
+For example, the .NET 10 row compares Track 2 on .NET 10 (11.59 ms) with Track 1 on .NET 10 (19.85 ms). It does not compare .NET 10 with .NET Core 3.1.
 
-.NET Core 3.1 is the only runtime baseline in this table. A negative saving means that the newer runtime took more elapsed time than the .NET Core 3.1 baseline.
+### Within-SDK runtime comparison: newer runtimes versus .NET Core 3.1
 
-| Implementation | Runtime | Elapsed time saved | Allocation saved |
-| --- | --- | ---: | ---: |
-| Track 1 Fluent | .NET 8.0.30 | -10.89% | 14.38% |
-| Track 1 Fluent | .NET 10.0.11 | -18.15% | 14.06% |
-| Track 2 ARM | .NET 8.0.30 | -11.69% | 28.54% |
-| Track 2 ARM | .NET 10.0.11 | -8.42% | 28.51% |
+This comparison holds the SDK constant and changes the runtime. .NET Core 3.1 is the runtime baseline for each row. A negative saving means that the newer runtime took more elapsed time than the .NET Core 3.1 baseline.
 
-For example, Track 1 on .NET 10 took 19.85 ms compared with 16.80 ms on .NET Core 3.1. The `-18.15%` saving therefore means it was 18.15% slower in this local run, while its positive `14.06%` allocation saving means it allocated less memory.
+| Implementation | Runtime | .NET Core 3.1 mean | Comparison mean | Elapsed time saved | Allocation saved |
+| --- | --- | ---: | ---: | ---: | ---: |
+| Track 1 Fluent | .NET 8.0.30 | 16.80 ms | 18.63 ms | -10.89% | 14.38% |
+| Track 1 Fluent | .NET 10.0.11 | 16.80 ms | 19.85 ms | -18.15% | 14.06% |
+| Track 2 ARM | .NET 8.0.30 | 10.69 ms | 11.94 ms | -11.69% | 28.54% |
+| Track 2 ARM | .NET 10.0.11 | 10.69 ms | 11.59 ms | -8.42% | 28.51% |
+
+For example, the Track 2/.NET 10 row compares Track 2 on .NET 10 (11.59 ms) with Track 2 on .NET Core 3.1 (10.69 ms). Therefore, Track 2 can be substantially faster than Track 1 when both use .NET 10, while also being slightly slower on .NET 10 than the same Track 2 code on .NET Core 3.1.
 
 The BenchmarkDotNet `Mean` values are wall-clock elapsed time for the client operation, not direct process CPU-utilization measurements. They are useful for comparing client-side completion time, but should not be labeled as measured CPU consumption.
 
