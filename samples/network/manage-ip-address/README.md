@@ -153,8 +153,10 @@ BenchmarkDotNet arguments can be passed through the script, for example:
 ./run-benchmarks.sh --filter '*Track1*'
 ```
 
-The mock server runs in a separate process so its allocations and processing time
-are not attributed to either client process. See [`BENCHMARK_RESULTS.md`](BENCHMARK_RESULTS.md)
+The mock server runs in a separate process so its allocations and CPU consumption
+are not counted as client-process diagnostics. Its response latency remains part of
+wall-clock elapsed time. See [`BENCHMARK_PROCESS.md`](BENCHMARK_PROCESS.md)
+for the reusable end-to-end process and [`BENCHMARK_RESULTS.md`](BENCHMARK_RESULTS.md)
 for a recorded local test run and its runtime details.
 
 ## This sample shows how to do following operations to manage IP Address
