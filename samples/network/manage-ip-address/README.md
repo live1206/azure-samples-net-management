@@ -130,11 +130,21 @@ The BenchmarkDotNet project measures the complete normalized management scenario
 for each SDK. Client creation and mock-server startup occur outside the measured
 benchmark operation.
 
-Run the benchmark and its mock server together with:
+Run the benchmark and its mock server together with one of the supported target frameworks:
 
 ```bash
+# .NET 8 (default)
 ./run-benchmarks.sh
+
+# .NET Core 3.1
+BENCHMARK_FRAMEWORK=netcoreapp3.1 ./run-benchmarks.sh
+
+# .NET 10
+BENCHMARK_FRAMEWORK=net10.0 ./run-benchmarks.sh
 ```
+
+The selected runtime must be installed. On current Linux distributions, the unsupported
+.NET Core 3.1 runtime may also require compatible OpenSSL 1.1 and ICU libraries.
 
 BenchmarkDotNet arguments can be passed through the script, for example:
 

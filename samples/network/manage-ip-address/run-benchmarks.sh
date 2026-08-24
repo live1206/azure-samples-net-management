@@ -3,7 +3,8 @@ set -euo pipefail
 
 sample_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 export MOCK_ARM_ENDPOINT=${MOCK_ARM_ENDPOINT:-http://127.0.0.1:5050}
-export DOTNET_ROLL_FORWARD=${DOTNET_ROLL_FORWARD:-Major}
+export DOTNET_ROLL_FORWARD=${DOTNET_ROLL_FORWARD:-LatestPatch}
+benchmark_framework=${BENCHMARK_FRAMEWORK:-net8.0}
 server_log=$(mktemp)
 server_pid=
 
@@ -44,5 +45,6 @@ fi
     dotnet run \
         --project ManageIPAddress.Benchmarks.csproj \
         --configuration Release \
+        --framework "${benchmark_framework}" \
         -- "$@"
 )
