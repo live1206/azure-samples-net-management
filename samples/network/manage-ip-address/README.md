@@ -17,7 +17,12 @@ This project framework provides examples for the following services:
 
 ### Network
 
-- You can find the details for the library [here](https://azure.github.io/azure-sdk/releases/latest/mgmt/dotnet.html).
+The two implementations are kept side by side so the same scenario can be compared across SDK generations:
+
+| SDK | Source | Project |
+| --- | --- | --- |
+| Track 1 (`Microsoft.Azure.Management.Fluent`) | `Program.Track1.cs` | `ManageIPAddress.Track1.csproj` |
+| Track 2 (`Azure.ResourceManager.*`) | `Program.cs` | `ManageIPAddress.csproj` |
 
 ## Getting Started
 
@@ -46,35 +51,15 @@ For information on how to get Client ID, Client Secret, and Tenant ID,
 please refer to [this
 document](https://docs.microsoft.com/azure/active-directory/develop/howto-create-service-principal-portal)
 
-### Setting Environment Variables
+### Authentication
 
-After you obtained the values, you need to set the following values as
-your environment variables
-
-- `AZURE_CLIENT_ID`
-- `AZURE_CLIENT_SECRET`
-- `AZURE_TENANT_ID`
-- `AZURE_SUBSCRIPTION_ID`
-
-To set the following environment variables on your development system:
-
-Windows: (Note: Administrator access is required)
-
-1. Open the System Control Panel
-2. Select `Advanced system settings`
-3. Open the `Advanced` tab, then click `Environment Variables...`
-   button.
-4. Click on the property you would like to change, then click the `Edit…`
-   button. If the property name is not listed, then click the `New…`
-   button.
-
-Linux-based OS :
+Both samples read the same service-principal environment variables:
 
 ```bash
-export AZURE_CLIENT_ID="__CLIENT_ID__"
-export AZURE_CLIENT_SECRET="__CLIENT_SECRET__"
-export AZURE_TENANT_ID="__TENANT_ID__"
-export AZURE_SUBSCRIPTION_ID="__SUBSCRIPTION_ID__"
+export CLIENT_ID="__CLIENT_ID__"
+export CLIENT_SECRET="__CLIENT_SECRET__"
+export TENANT_ID="__TENANT_ID__"
+export SUBSCRIPTION_ID="__SUBSCRIPTION_ID__"
 ```
 
 ### Installation
@@ -99,8 +84,18 @@ git clone https://github.com/Azure-Samples/azure-samples-net-management.git
 cd samples/network/manage-ip-address
 ```
 
-3. Replace all the ```<password>``` placeholder with a valid password in the Program.cs file.  
-4. Run the application with the `dotnet run` command.
+3. Replace the `<password>` placeholder in both source files with a valid password.
+4. Run either implementation:
+
+```bash
+# Track 1
+DOTNET_ROLL_FORWARD=Major dotnet run --project ManageIPAddress.Track1.csproj
+
+# Track 2
+dotnet run --project ManageIPAddress.csproj
+```
+
+`DOTNET_ROLL_FORWARD=Major` is only needed when the .NET Core 3.1 runtime is not installed.
 
 ## This sample shows how to do following operations to manage IP Address
 

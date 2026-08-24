@@ -1,0 +1,6 @@
+<Project>
+  <PropertyGroup Condition="'$(MSBuildProjectName)' == 'ManageIPAddress.Track1'">
+    <BaseIntermediateOutputPath>obj/track1/</BaseIntermediateOutputPath>
+    <MSBuildProjectExtensionsPath>obj/track1/</MSBuildProjectExtensionsPath>
+  </PropertyGroup>
+</Project>

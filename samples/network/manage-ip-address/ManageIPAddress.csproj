@@ -6,6 +6,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Program.Track1.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Azure.Identity" Version="1.11.4" />
     <PackageReference Include="Azure.ResourceManager.Compute" Version="1.2.1" />
     <PackageReference Include="Azure.ResourceManager.Network" Version="1.6.0" />
