@@ -97,6 +97,33 @@ dotnet run --project ManageIPAddress.csproj
 
 `DOTNET_ROLL_FORWARD=Major` is only needed when the .NET Core 3.1 runtime is not installed.
 
+### Running against the mock ARM server
+
+The shared mock server returns completed ARM resources from local memory, so both
+implementations can run without Azure credentials or creating Azure resources.
+Start the server in one terminal:
+
+```bash
+export MOCK_ARM_ENDPOINT="http://127.0.0.1:5050"
+dotnet run --project MockArmServer.csproj
+```
+
+Then use the same endpoint and subscription ID for either client:
+
+```bash
+export MOCK_ARM_ENDPOINT="http://127.0.0.1:5050"
+export SUBSCRIPTION_ID="00000000-0000-0000-0000-000000000000"
+
+# Track 1
+DOTNET_ROLL_FORWARD=Major dotnet run --project ManageIPAddress.Track1.csproj
+
+# Track 2
+DOTNET_ROLL_FORWARD=Major dotnet run --project ManageIPAddress.csproj
+```
+
+The server exposes `GET /__mock/health` for readiness checks and
+`POST /__mock/reset` to clear its in-memory resources between runs.
+
 ## This sample shows how to do following operations to manage IP Address
 
 - Assign a public IP address for a virtual machine during its creation.

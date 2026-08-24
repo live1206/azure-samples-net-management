@@ -5,8 +5,13 @@ using Microsoft.Azure.Management.Compute.Fluent;
 using Microsoft.Azure.Management.Compute.Fluent.Models;
 using Microsoft.Azure.Management.Fluent;
 using Microsoft.Azure.Management.ResourceManager.Fluent;
+using Microsoft.Azure.Management.ResourceManager.Fluent.Authentication;
 using Microsoft.Azure.Management.ResourceManager.Fluent.Core;
+using Microsoft.Rest;
 using System;
+using System.Net.Http;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace ManageIPAddress
 {
@@ -15,7 +20,7 @@ namespace ManageIPAddress
         private const string UserName = "tirekicker";
         private const string Password = "<password>"; // Replace with a password following the policy.
 
-        public static void RunSample(IAzure azure)
+        public static void RunSample(IAzure azure, string adminPassword)
         {
             string suffix = Guid.NewGuid().ToString("N").Substring(0, 8);
             string publicIPAddressName1 = $"pip1-{suffix}";
@@ -79,7 +84,7 @@ namespace ManageIPAddress
                         Version = "latest"
                     })
                     .WithAdminUsername(UserName)
-                    .WithAdminPassword(Password)
+                    .WithAdminPassword(adminPassword)
                     .WithSize(VirtualMachineSizeTypes.Parse("Standard_D3_v2"))
                     .Create();
                 var vmFinishedAt = DateTime.UtcNow;
@@ -137,23 +142,98 @@ namespace ManageIPAddress
         {
             try
             {
-                var credentials = SdkContext.AzureCredentialsFactory.FromServicePrincipal(
-                    Environment.GetEnvironmentVariable("CLIENT_ID"),
-                    Environment.GetEnvironmentVariable("CLIENT_SECRET"),
-                    Environment.GetEnvironmentVariable("TENANT_ID"),
-                    AzureEnvironment.AzureGlobalCloud);
+                string mockEndpoint = Environment.GetEnvironmentVariable("MOCK_ARM_ENDPOINT");
+                IAzure azure;
+                string adminPassword;
 
-                var azure = Azure.Configure()
-                    .WithLogLevel(HttpLoggingDelegatingHandler.Level.None)
-                    .Authenticate(credentials)
-                    .WithSubscription(Environment.GetEnvironmentVariable("SUBSCRIPTION_ID"));
+                if (string.IsNullOrEmpty(mockEndpoint))
+                {
+                    var credentials = SdkContext.AzureCredentialsFactory.FromServicePrincipal(
+                        Environment.GetEnvironmentVariable("CLIENT_ID"),
+                        Environment.GetEnvironmentVariable("CLIENT_SECRET"),
+                        Environment.GetEnvironmentVariable("TENANT_ID"),
+                        AzureEnvironment.AzureGlobalCloud);
+
+                    azure = Azure.Configure()
+                        .WithLogLevel(HttpLoggingDelegatingHandler.Level.None)
+                        .Authenticate(credentials)
+                        .WithSubscription(Environment.GetEnvironmentVariable("SUBSCRIPTION_ID"));
+                    adminPassword = Password;
+                }
+                else
+                {
+                    var mockUri = new Uri(EnsureTrailingSlash(mockEndpoint));
+                    string tlsEndpoint = new UriBuilder(mockUri)
+                    {
+                        Scheme = Uri.UriSchemeHttps,
+                        Port = mockUri.Port
+                    }.Uri.AbsoluteUri;
+                    string subscriptionId = Environment.GetEnvironmentVariable("SUBSCRIPTION_ID")
+                        ?? "00000000-0000-0000-0000-000000000000";
+                    var environment = new AzureEnvironment
+                    {
+                        Name = "Mock",
+                        AuthenticationEndpoint = tlsEndpoint,
+                        ResourceManagerEndpoint = tlsEndpoint,
+                        GraphEndpoint = tlsEndpoint,
+                        ManagementEndpoint = tlsEndpoint,
+                        StorageEndpointSuffix = "mock.local",
+                        KeyVaultSuffix = "mock.local"
+                    };
+                    var credentials = new AzureCredentials(
+                        new MockServiceClientCredentials(),
+                        new MockServiceClientCredentials(),
+                        "mock-tenant",
+                        environment).WithDefaultSubscription(subscriptionId);
+                    var restClient = RestClient.Configure()
+                        .WithEnvironment(environment)
+                        .WithCredentials(credentials)
+                        .WithDelegatingHandler(new MockEndpointHandler())
+                        .WithLogLevel(HttpLoggingDelegatingHandler.Level.None)
+                        .Build();
+
+                    azure = Azure.Authenticate(restClient, "mock-tenant")
+                        .WithSubscription(subscriptionId);
+                    adminPassword = "Benchmark!Passw0rd123";
+                }
 
                 Console.WriteLine($"Selected subscription: {azure.SubscriptionId}");
-                RunSample(azure);
+                RunSample(azure, adminPassword);
             }
             catch (Exception ex)
             {
                 Console.WriteLine(ex);
+            }
+        }
+
+        private static string EnsureTrailingSlash(string endpoint)
+        {
+            return endpoint.EndsWith("/", StringComparison.Ordinal) ? endpoint : endpoint + "/";
+        }
+
+        private sealed class MockEndpointHandler : DelegatingHandler
+        {
+            protected override Task<HttpResponseMessage> SendAsync(
+                HttpRequestMessage request,
+                CancellationToken cancellationToken)
+            {
+                var uri = new UriBuilder(request.RequestUri)
+                {
+                    Scheme = Uri.UriSchemeHttp,
+                    Port = request.RequestUri.Port
+                };
+                request.RequestUri = uri.Uri;
+                return base.SendAsync(request, cancellationToken);
+            }
+        }
+
+        private sealed class MockServiceClientCredentials : ServiceClientCredentials
+        {
+            public override Task ProcessHttpRequestAsync(
+                HttpRequestMessage request,
+                CancellationToken cancellationToken)
+            {
+                return Task.CompletedTask;
             }
         }
     }

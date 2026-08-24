@@ -3,4 +3,8 @@
     <BaseIntermediateOutputPath>obj/track1/</BaseIntermediateOutputPath>
     <MSBuildProjectExtensionsPath>obj/track1/</MSBuildProjectExtensionsPath>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(MSBuildProjectName)' == 'MockArmServer'">
+    <BaseIntermediateOutputPath>obj/mock-server/</BaseIntermediateOutputPath>
+    <MSBuildProjectExtensionsPath>obj/mock-server/</MSBuildProjectExtensionsPath>
+  </PropertyGroup>
 </Project>

@@ -3,6 +3,7 @@
 
 using Azure.Core;
 using Azure.Identity;
+using Azure.Core.Pipeline;
 using Azure.ResourceManager;
 using Azure.ResourceManager.Compute;
 using Azure.ResourceManager.Compute.Models;
@@ -11,6 +12,8 @@ using Azure.ResourceManager.Network.Models;
 using Azure.ResourceManager.Resources;
 using System;
 using System.Linq;
+using System.Net.Http;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace ManageIPAddress
@@ -20,7 +23,7 @@ namespace ManageIPAddress
         private const string UserName = "tirekicker";
         private const string Password = "<password>"; // Replace with a password following the policy.
 
-        public static async Task RunSample(ArmClient client)
+        public static async Task RunSample(ArmClient client, string subscriptionId, string adminPassword)
         {
             string suffix = Guid.NewGuid().ToString("N").Substring(0, 8);
             string publicIPAddressName1 = $"pip1-{suffix}";
@@ -38,8 +41,9 @@ namespace ManageIPAddress
             try
             {
                 Console.WriteLine("Creating a resource group...");
-                resourceGroup = (await client.GetDefaultSubscription()
-                    .GetResourceGroups()
+                var subscription = client.GetSubscriptionResource(
+                    new ResourceIdentifier($"/subscriptions/{subscriptionId}"));
+                resourceGroup = (await subscription.GetResourceGroups()
                     .CreateOrUpdateAsync(
                         Azure.WaitUntil.Completed,
                         resourceGroupName,
@@ -100,7 +104,7 @@ namespace ManageIPAddress
                     {
                         ComputerName = vmName,
                         AdminUsername = UserName,
-                        AdminPassword = Password
+                        AdminPassword = adminPassword
                     },
                     StorageProfile = new VirtualMachineStorageProfile
                     {
@@ -229,19 +233,96 @@ namespace ManageIPAddress
         {
             try
             {
-                var credential = new ClientSecretCredential(
-                    Environment.GetEnvironmentVariable("TENANT_ID"),
-                    Environment.GetEnvironmentVariable("CLIENT_ID"),
-                    Environment.GetEnvironmentVariable("CLIENT_SECRET"));
-                var client = new ArmClient(
-                    credential,
-                    Environment.GetEnvironmentVariable("SUBSCRIPTION_ID"));
+                string mockEndpoint = Environment.GetEnvironmentVariable("MOCK_ARM_ENDPOINT");
+                ArmClient client;
+                string adminPassword;
+                string subscriptionId = Environment.GetEnvironmentVariable("SUBSCRIPTION_ID")
+                    ?? "00000000-0000-0000-0000-000000000000";
 
-                await RunSample(client);
+                if (string.IsNullOrEmpty(mockEndpoint))
+                {
+                    var credential = new ClientSecretCredential(
+                        Environment.GetEnvironmentVariable("TENANT_ID"),
+                        Environment.GetEnvironmentVariable("CLIENT_ID"),
+                        Environment.GetEnvironmentVariable("CLIENT_SECRET"));
+                    client = new ArmClient(credential, subscriptionId);
+                    adminPassword = Password;
+                }
+                else
+                {
+                    var mockUri = new Uri(EnsureTrailingSlash(mockEndpoint));
+                    var tlsEndpoint = new UriBuilder(mockUri)
+                    {
+                        Scheme = Uri.UriSchemeHttps,
+                        Port = mockUri.Port
+                    }.Uri;
+                    var options = new ArmClientOptions
+                    {
+                        Environment = new ArmEnvironment(
+                            tlsEndpoint,
+                            "https://management.azure.com/"),
+                        Transport = new HttpClientTransport(
+                            new HttpClient(new MockEndpointHandler()))
+                    };
+                    options.Retry.MaxRetries = 0;
+
+                    client = new ArmClient(
+                        new MockTokenCredential(),
+                        subscriptionId,
+                        options);
+                    adminPassword = "Benchmark!Passw0rd123";
+                }
+
+                await RunSample(client, subscriptionId, adminPassword);
             }
             catch (Exception ex)
             {
                 Console.WriteLine(ex);
+            }
+        }
+
+        private static string EnsureTrailingSlash(string endpoint)
+        {
+            return endpoint.EndsWith("/", StringComparison.Ordinal) ? endpoint : endpoint + "/";
+        }
+
+        private sealed class MockEndpointHandler : DelegatingHandler
+        {
+            public MockEndpointHandler()
+                : base(new HttpClientHandler())
+            {
+            }
+
+            protected override Task<HttpResponseMessage> SendAsync(
+                HttpRequestMessage request,
+                CancellationToken cancellationToken)
+            {
+                var uri = new UriBuilder(request.RequestUri)
+                {
+                    Scheme = Uri.UriSchemeHttp,
+                    Port = request.RequestUri.Port
+                };
+                request.RequestUri = uri.Uri;
+                return base.SendAsync(request, cancellationToken);
+            }
+        }
+
+        private sealed class MockTokenCredential : TokenCredential
+        {
+            private static readonly AccessToken Token = new AccessToken(
+                "mock-token",
+                DateTimeOffset.MaxValue);
+
+            public override AccessToken GetToken(TokenRequestContext requestContext, CancellationToken cancellationToken)
+            {
+                return Token;
+            }
+
+            public override ValueTask<AccessToken> GetTokenAsync(
+                TokenRequestContext requestContext,
+                CancellationToken cancellationToken)
+            {
+                return new ValueTask<AccessToken>(Token);
             }
         }
     }
