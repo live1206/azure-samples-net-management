@@ -16,7 +16,11 @@ This code sample will show you how to create a Virtual Machine using Azure SDK f
 This project framework provides examples for the following services:
 
 ### Compute
-* You can find the details for the library [here](https://azure.github.io/azure-sdk/releases/latest/#dotnet).
+
+| SDK | Source | Project |
+| --- | --- | --- |
+| Track 1 Fluent | `Program.Track1.cs` | `CreateVMSample.Track1.csproj` |
+| Track 2 ARM | `Program.cs` | `CreateVMSample.csproj` |
 
 ## Getting Started
 
@@ -107,13 +111,22 @@ protected static string AdminPassword = "<password>";
 dotnet run
 ```
 
+### Running the benchmarks
+
+```bash
+./run-benchmarks.sh
+BENCHMARK_FRAMEWORK=netcoreapp3.1 ./run-benchmarks.sh
+BENCHMARK_FRAMEWORK=net10.0 ./run-benchmarks.sh
+```
+
+See [`BENCHMARK_RESULTS.md`](BENCHMARK_RESULTS.md) for the recorded results.
+
 ## This sample shows how to do following operations to create a Virtual Machine
-- Create a Resource Group.
-- Create a AvailabilitySet.
-- Create a IP Address.
-- Create a Virtual Network.
-- Craete a Network Interface.
-- Create a Virtual Machine.
+- Create a resource group.
+- Create a virtual network and subnet.
+- Create a network interface.
+- Create a virtual machine.
+- Delete the resource group.
 
 ## More information
 

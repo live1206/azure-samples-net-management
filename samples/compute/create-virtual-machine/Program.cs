@@ -1,164 +1,126 @@
-﻿using Azure.Identity;
-using Azure.ResourceManager.Resources;
+using Azure.Core;
+using Azure.Core.Pipeline;
+using Azure.Identity;
 using Azure.ResourceManager;
-using Azure.ResourceManager.Resources.Models;
 using Azure.ResourceManager.Compute;
 using Azure.ResourceManager.Compute.Models;
 using Azure.ResourceManager.Network;
 using Azure.ResourceManager.Network.Models;
+using Azure.ResourceManager.Resources;
 using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 using System.Linq;
-using Azure.Core;
-using System.Xml.Linq;
+using System.Net.Http;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace CreateVMSample
 {
     public class Program
     {
-        protected static string AdminUsername = "<username>";
-        protected static string AdminPassword = "<password>";
+        private const string AdminUsername = "sampleuser";
+        private const string AdminPassword = "Benchmark!Passw0rd123";
 
-        static async Task Main(string[] args)
+        public static async Task RunSample(ArmClient client, string subscriptionId)
         {
-            var clientId = Environment.GetEnvironmentVariable("CLIENT_ID");
-            var clientSecret = Environment.GetEnvironmentVariable("CLIENT_SECRET");
-            var tenantId = Environment.GetEnvironmentVariable("TENANT_ID");
-            var subscription = Environment.GetEnvironmentVariable("SUBSCRIPTION_ID");
-            ClientSecretCredential credential = new ClientSecretCredential(tenantId, clientId, clientSecret);
-            ArmClient client = new ArmClient(credential, subscription);
-
-            // Create Resource Group
-            Console.WriteLine("--------Start create group--------");
-            var resourceGroupName = "QuickStartRG";
-            String location = AzureLocation.WestUS2;
-
-            ResourceGroupResource resourceGroup = (await client.GetDefaultSubscription().GetResourceGroups().CreateOrUpdateAsync(Azure.WaitUntil.Completed, resourceGroupName, new ResourceGroupData(location))).Value;
-            Console.WriteLine("--------Finish create group--------");
-
-            // Create a Virtual Machine
-            await Program.CreateVmAsync(resourceGroup, "QuickStartRG", location, "quickstartvm");
-
-            // Delete resource group if necessary
-            //Console.WriteLine("--------Start delete group--------");
-            //await (await resourceGroups.StartDeleteAsync(resourceGroupName)).WaitForCompletionAsync();
-            //Console.WriteLine("--------Finish delete group--------");
-            //Console.ReadKey();
-        }
-
-        public static async Task CreateVmAsync(
-            ResourceGroupResource resourcegroup,
-            string resourceGroupName,
-            string location,
-            string vmName)
-        {
-            var collection = resourcegroup.GetVirtualMachines();
-
-            // Create VNet
-            Console.WriteLine("--------Start create VNet--------");
-            var vnet = new VirtualNetworkData()
+            string suffix = Guid.NewGuid().ToString("N").Substring(0, 8);
+            string resourceGroupName = $"quickstart-{suffix}";
+            string vnetName = $"vnet-{suffix}";
+            string nicName = $"nic-{suffix}";
+            string vmName = $"vm{suffix}";
+            AzureLocation location = AzureLocation.WestUS2;
+            ResourceGroupResource resourceGroup = null;
+            try
             {
-                Location = location,
-                AddressPrefixes = { "10.0.0.0/16" },
-                Subnets = { new SubnetData() { Name = "SubnetSampleName", AddressPrefix = "10.0.0.0/28" } }
-            };
-
-            // Create Network Interface
-            Console.WriteLine("--------Start create Network Interface--------");
-            var nicData = new NetworkInterfaceData()
-            {
-                Location = location,
-                IPConfigurations = {
-                        new NetworkInterfaceIPConfigurationData()
+                var subscription = client.GetSubscriptionResource(new ResourceIdentifier($"/subscriptions/{subscriptionId}"));
+                resourceGroup = (await subscription.GetResourceGroups().CreateOrUpdateAsync(Azure.WaitUntil.Completed, resourceGroupName, new ResourceGroupData(location))).Value;
+                var network = (await resourceGroup.GetVirtualNetworks().CreateOrUpdateAsync(Azure.WaitUntil.Completed, vnetName,
+                    new VirtualNetworkData
+                    {
+                        Location = location,
+                        AddressPrefixes = { "10.0.0.0/16" },
+                        Subnets = { new SubnetData { Name = "default", AddressPrefix = "10.0.0.0/28" } }
+                    })).Value;
+                var nic = (await resourceGroup.GetNetworkInterfaces().CreateOrUpdateAsync(Azure.WaitUntil.Completed, nicName,
+                    new NetworkInterfaceData
+                    {
+                        Location = location,
+                        IPConfigurations =
                         {
-                            Name = "SampleIpConfigName",
-                            PrivateIPAllocationMethod = NetworkIPAllocationMethod.Dynamic,
-                            Primary = false,
-                            Subnet = new SubnetData()
+                            new NetworkInterfaceIPConfigurationData
                             {
-                                Id = vnet.Subnets.ElementAt(0).Id
+                                Name = "Primary", Primary = true,
+                                Subnet = new SubnetData { Id = network.Data.Subnets.Single().Id },
+                                PrivateIPAllocationMethod = NetworkIPAllocationMethod.Dynamic
                             }
                         }
-                    }
-            };
-            var nicCollection = resourcegroup.GetNetworkInterfaces();
-            var nic = (await nicCollection.CreateOrUpdateAsync(Azure.WaitUntil.Completed, "SampleNicName", nicData)).Value;
-
-            // Create VM
-            Console.WriteLine("--------Start create VM--------");
-            var vmData = new VirtualMachineData(location)
-            {
-                HardwareProfile = new VirtualMachineHardwareProfile()
-                {
-                    VmSize = VirtualMachineSizeType.StandardF2
-                },
-                OSProfile = new VirtualMachineOSProfile()
-                {
-                    AdminUsername = AdminUsername,
-                    AdminPassword = AdminPassword,
-                    ComputerName = "linux Compute",
-                    LinuxConfiguration = new LinuxConfiguration()
+                    })).Value;
+                await resourceGroup.GetVirtualMachines().CreateOrUpdateAsync(Azure.WaitUntil.Completed, vmName,
+                    new VirtualMachineData(location)
                     {
-                        DisablePasswordAuthentication = true,
-                    }
-                },
-                NetworkProfile = new VirtualMachineNetworkProfile()
-                {
-                    NetworkInterfaces =
-                    {
-                        new VirtualMachineNetworkInterfaceReference()
+                        HardwareProfile = new VirtualMachineHardwareProfile { VmSize = VirtualMachineSizeType.StandardF2 },
+                        OSProfile = new VirtualMachineOSProfile { ComputerName = vmName, AdminUsername = AdminUsername, AdminPassword = AdminPassword },
+                        NetworkProfile = new VirtualMachineNetworkProfile
                         {
-                            Id = nic.Id,
-                            Primary = true,
-                        }
-                    }
-                },
-                StorageProfile = new VirtualMachineStorageProfile()
-                {
-                    OSDisk = new VirtualMachineOSDisk(DiskCreateOptionType.FromImage)
-                    {
-                        Name = "Sample",
-                        OSType = SupportedOperatingSystemType.Windows,
-                        Caching = CachingType.ReadWrite,
-                        ManagedDisk = new VirtualMachineManagedDisk()
-                        {
-                            StorageAccountType = StorageAccountType.StandardLrs
-                        }
-                    },
-                    DataDisks =
-                        {
-                            new VirtualMachineDataDisk(1, DiskCreateOptionType.Empty)
-                            {
-                                DiskSizeGB = 100,
-                                ManagedDisk = new VirtualMachineManagedDisk()
-                                {
-                                    StorageAccountType = StorageAccountType.StandardLrs
-                                }
-                            },
-                            new VirtualMachineDataDisk(2, DiskCreateOptionType.Empty)
-                            {
-                                DiskSizeGB = 10,
-                                Caching = CachingType.ReadWrite,
-                                ManagedDisk = new VirtualMachineManagedDisk()
-                                {
-                                    StorageAccountType = StorageAccountType.StandardLrs
-                                }
-                            },
+                            NetworkInterfaces = { new VirtualMachineNetworkInterfaceReference { Id = nic.Id, Primary = true } }
                         },
-                    ImageReference = new ImageReference()
-                    {
-                        Publisher = "MicrosoftWindowsServer",
-                        Offer = "WindowsServer",
-                        Sku = "2016-Datacenter",
-                        Version = "latest",
-                    }
+                        StorageProfile = new VirtualMachineStorageProfile
+                        {
+                            ImageReference = new ImageReference { Publisher = "MicrosoftWindowsServer", Offer = "WindowsServer", Sku = "2016-Datacenter", Version = "latest" }
+                        }
+                    });
+            }
+            finally
+            {
+                if (resourceGroup != null)
+                {
+                    try { await resourceGroup.DeleteAsync(Azure.WaitUntil.Completed); }
+                    catch (Exception ex) { Console.WriteLine(ex); }
                 }
-            };
+            }
+        }
 
-            var resource = await collection.CreateOrUpdateAsync(Azure.WaitUntil.Completed, vmName, vmData);
-            Console.WriteLine("VM ID: " + resource.Id);
-            Console.WriteLine("--------Done create VM--------");
+        public static ArmClient CreateMockClient(string endpoint, string subscriptionId)
+        {
+            var uri = new Uri(EnsureSlash(endpoint));
+            var tls = new UriBuilder(uri) { Scheme = Uri.UriSchemeHttps, Port = uri.Port }.Uri;
+            var options = new ArmClientOptions
+            {
+                Environment = new ArmEnvironment(tls, "https://management.azure.com/"),
+                Transport = new HttpClientTransport(new HttpClient(new MockEndpointHandler()))
+            };
+            options.Retry.MaxRetries = 0;
+            return new ArmClient(new MockTokenCredential(), subscriptionId, options);
+        }
+
+        public static async Task Main(string[] args)
+        {
+            try
+            {
+                string endpoint = Environment.GetEnvironmentVariable("MOCK_ARM_ENDPOINT");
+                string subscription = Environment.GetEnvironmentVariable("SUBSCRIPTION_ID") ?? "00000000-0000-0000-0000-000000000000";
+                ArmClient client = string.IsNullOrEmpty(endpoint)
+                    ? new ArmClient(new ClientSecretCredential(Environment.GetEnvironmentVariable("TENANT_ID"), Environment.GetEnvironmentVariable("CLIENT_ID"), Environment.GetEnvironmentVariable("CLIENT_SECRET")), subscription)
+                    : CreateMockClient(endpoint, subscription);
+                await RunSample(client, subscription);
+            }
+            catch (Exception ex) { Console.WriteLine(ex); }
+        }
+
+        private static string EnsureSlash(string value) => value.EndsWith("/", StringComparison.Ordinal) ? value : value + "/";
+        private sealed class MockEndpointHandler : DelegatingHandler
+        {
+            public MockEndpointHandler() : base(new HttpClientHandler()) { }
+            protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken token)
+            {
+                request.RequestUri = new UriBuilder(request.RequestUri) { Scheme = Uri.UriSchemeHttp, Port = request.RequestUri.Port }.Uri;
+                return base.SendAsync(request, token);
+            }
+        }
+        private sealed class MockTokenCredential : TokenCredential
+        {
+            private static readonly AccessToken Token = new AccessToken("mock-token", DateTimeOffset.MaxValue);
+            public override AccessToken GetToken(TokenRequestContext context, CancellationToken token) => Token;
+            public override ValueTask<AccessToken> GetTokenAsync(TokenRequestContext context, CancellationToken token) => new ValueTask<AccessToken>(Token);
         }
     }
 }

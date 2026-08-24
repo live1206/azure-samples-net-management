@@ -1,0 +1,11 @@
+<Project>
+  <PropertyGroup Condition="'$(MSBuildProjectName)' == 'CreateVMSample.Track1'">
+    <BaseIntermediateOutputPath>obj/track1/</BaseIntermediateOutputPath><MSBuildProjectExtensionsPath>obj/track1/</MSBuildProjectExtensionsPath><BaseOutputPath>bin/track1/</BaseOutputPath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(MSBuildProjectName)' == 'MockArmServer'">
+    <BaseIntermediateOutputPath>obj/mock-server/</BaseIntermediateOutputPath><MSBuildProjectExtensionsPath>obj/mock-server/</MSBuildProjectExtensionsPath><BaseOutputPath>bin/mock-server/</BaseOutputPath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(MSBuildProjectName)' == 'CreateVMSample.Benchmarks'">
+    <BaseIntermediateOutputPath>obj/benchmarks/</BaseIntermediateOutputPath><MSBuildProjectExtensionsPath>obj/benchmarks/</MSBuildProjectExtensionsPath><BaseOutputPath>bin/benchmarks/</BaseOutputPath>
+  </PropertyGroup>
+</Project>
