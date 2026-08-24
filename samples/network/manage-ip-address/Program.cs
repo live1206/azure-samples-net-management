@@ -250,26 +250,7 @@ namespace ManageIPAddress
                 }
                 else
                 {
-                    var mockUri = new Uri(EnsureTrailingSlash(mockEndpoint));
-                    var tlsEndpoint = new UriBuilder(mockUri)
-                    {
-                        Scheme = Uri.UriSchemeHttps,
-                        Port = mockUri.Port
-                    }.Uri;
-                    var options = new ArmClientOptions
-                    {
-                        Environment = new ArmEnvironment(
-                            tlsEndpoint,
-                            "https://management.azure.com/"),
-                        Transport = new HttpClientTransport(
-                            new HttpClient(new MockEndpointHandler()))
-                    };
-                    options.Retry.MaxRetries = 0;
-
-                    client = new ArmClient(
-                        new MockTokenCredential(),
-                        subscriptionId,
-                        options);
+                    client = CreateMockClient(mockEndpoint, subscriptionId);
                     adminPassword = "Benchmark!Passw0rd123";
                 }
 
@@ -279,6 +260,27 @@ namespace ManageIPAddress
             {
                 Console.WriteLine(ex);
             }
+        }
+
+        public static ArmClient CreateMockClient(string mockEndpoint, string subscriptionId)
+        {
+            var mockUri = new Uri(EnsureTrailingSlash(mockEndpoint));
+            var tlsEndpoint = new UriBuilder(mockUri)
+            {
+                Scheme = Uri.UriSchemeHttps,
+                Port = mockUri.Port
+            }.Uri;
+            var options = new ArmClientOptions
+            {
+                Environment = new ArmEnvironment(
+                    tlsEndpoint,
+                    "https://management.azure.com/"),
+                Transport = new HttpClientTransport(
+                    new HttpClient(new MockEndpointHandler()))
+            };
+            options.Retry.MaxRetries = 0;
+
+            return new ArmClient(new MockTokenCredential(), subscriptionId, options);
         }
 
         private static string EnsureTrailingSlash(string endpoint)

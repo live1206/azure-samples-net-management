@@ -162,38 +162,9 @@ namespace ManageIPAddress
                 }
                 else
                 {
-                    var mockUri = new Uri(EnsureTrailingSlash(mockEndpoint));
-                    string tlsEndpoint = new UriBuilder(mockUri)
-                    {
-                        Scheme = Uri.UriSchemeHttps,
-                        Port = mockUri.Port
-                    }.Uri.AbsoluteUri;
                     string subscriptionId = Environment.GetEnvironmentVariable("SUBSCRIPTION_ID")
                         ?? "00000000-0000-0000-0000-000000000000";
-                    var environment = new AzureEnvironment
-                    {
-                        Name = "Mock",
-                        AuthenticationEndpoint = tlsEndpoint,
-                        ResourceManagerEndpoint = tlsEndpoint,
-                        GraphEndpoint = tlsEndpoint,
-                        ManagementEndpoint = tlsEndpoint,
-                        StorageEndpointSuffix = "mock.local",
-                        KeyVaultSuffix = "mock.local"
-                    };
-                    var credentials = new AzureCredentials(
-                        new MockServiceClientCredentials(),
-                        new MockServiceClientCredentials(),
-                        "mock-tenant",
-                        environment).WithDefaultSubscription(subscriptionId);
-                    var restClient = RestClient.Configure()
-                        .WithEnvironment(environment)
-                        .WithCredentials(credentials)
-                        .WithDelegatingHandler(new MockEndpointHandler())
-                        .WithLogLevel(HttpLoggingDelegatingHandler.Level.None)
-                        .Build();
-
-                    azure = Azure.Authenticate(restClient, "mock-tenant")
-                        .WithSubscription(subscriptionId);
+                    azure = CreateMockClient(mockEndpoint, subscriptionId);
                     adminPassword = "Benchmark!Passw0rd123";
                 }
 
@@ -204,6 +175,40 @@ namespace ManageIPAddress
             {
                 Console.WriteLine(ex);
             }
+        }
+
+        public static IAzure CreateMockClient(string mockEndpoint, string subscriptionId)
+        {
+            var mockUri = new Uri(EnsureTrailingSlash(mockEndpoint));
+            string tlsEndpoint = new UriBuilder(mockUri)
+            {
+                Scheme = Uri.UriSchemeHttps,
+                Port = mockUri.Port
+            }.Uri.AbsoluteUri;
+            var environment = new AzureEnvironment
+            {
+                Name = "Mock",
+                AuthenticationEndpoint = tlsEndpoint,
+                ResourceManagerEndpoint = tlsEndpoint,
+                GraphEndpoint = tlsEndpoint,
+                ManagementEndpoint = tlsEndpoint,
+                StorageEndpointSuffix = "mock.local",
+                KeyVaultSuffix = "mock.local"
+            };
+            var credentials = new AzureCredentials(
+                new MockServiceClientCredentials(),
+                new MockServiceClientCredentials(),
+                "mock-tenant",
+                environment).WithDefaultSubscription(subscriptionId);
+            var restClient = RestClient.Configure()
+                .WithEnvironment(environment)
+                .WithCredentials(credentials)
+                .WithDelegatingHandler(new MockEndpointHandler())
+                .WithLogLevel(HttpLoggingDelegatingHandler.Level.None)
+                .Build();
+
+            return Azure.Authenticate(restClient, "mock-tenant")
+                .WithSubscription(subscriptionId);
         }
 
         private static string EnsureTrailingSlash(string endpoint)

@@ -6,5 +6,11 @@
   <PropertyGroup Condition="'$(MSBuildProjectName)' == 'MockArmServer'">
     <BaseIntermediateOutputPath>obj/mock-server/</BaseIntermediateOutputPath>
     <MSBuildProjectExtensionsPath>obj/mock-server/</MSBuildProjectExtensionsPath>
+    <BaseOutputPath>bin/mock-server/</BaseOutputPath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(MSBuildProjectName)' == 'ManageIPAddress.Benchmarks'">
+    <BaseIntermediateOutputPath>obj/benchmarks/</BaseIntermediateOutputPath>
+    <MSBuildProjectExtensionsPath>obj/benchmarks/</MSBuildProjectExtensionsPath>
+    <BaseOutputPath>bin/benchmarks/</BaseOutputPath>
   </PropertyGroup>
 </Project>

@@ -124,6 +124,28 @@ DOTNET_ROLL_FORWARD=Major dotnet run --project ManageIPAddress.csproj
 The server exposes `GET /__mock/health` for readiness checks and
 `POST /__mock/reset` to clear its in-memory resources between runs.
 
+### Running the benchmarks
+
+The BenchmarkDotNet project measures the complete normalized management scenario
+for each SDK. Client creation and mock-server startup occur outside the measured
+benchmark operation.
+
+Run the benchmark and its mock server together with:
+
+```bash
+./run-benchmarks.sh
+```
+
+BenchmarkDotNet arguments can be passed through the script, for example:
+
+```bash
+./run-benchmarks.sh --filter '*Track1*'
+```
+
+The mock server runs in a separate process so its allocations and processing time
+are not attributed to either client process. See [`BENCHMARK_RESULTS.md`](BENCHMARK_RESULTS.md)
+for a recorded local test run and its runtime details.
+
 ## This sample shows how to do following operations to manage IP Address
 
 - Assign a public IP address for a virtual machine during its creation.
