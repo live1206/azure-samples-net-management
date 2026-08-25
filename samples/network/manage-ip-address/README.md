@@ -22,7 +22,8 @@ The two implementations are kept side by side so the same scenario can be compar
 | SDK | Source | Project |
 | --- | --- | --- |
 | Track 1 (`Microsoft.Azure.Management.Fluent`) | `Program.Track1.cs` | `ManageIPAddress.Track1.csproj` |
-| Track 2 (`Azure.ResourceManager.*`) | `Program.cs` | `ManageIPAddress.csproj` |
+| Track 2 legacy (`Azure.ResourceManager.*`) | `Program.cs` | `ManageIPAddress.csproj` |
+| Track 2 latest (`Azure.ResourceManager.*`) | `Program.cs` | `ManageIPAddress.Track2Latest.csproj` |
 
 ## Getting Started
 
@@ -142,6 +143,9 @@ BENCHMARK_FRAMEWORK=netcoreapp3.1 ./run-benchmarks.sh
 
 # .NET 10
 BENCHMARK_FRAMEWORK=net10.0 ./run-benchmarks.sh
+
+# Latest Track 2 packages (supports .NET 8 and .NET 10)
+./run-latest-benchmarks.sh
 ```
 
 The selected runtime must be installed. On current Linux distributions, the unsupported

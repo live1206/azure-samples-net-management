@@ -20,7 +20,8 @@ This project framework provides examples for the following services:
 | SDK | Source | Project |
 | --- | --- | --- |
 | Track 1 Fluent | `Program.Track1.cs` | `CreateVirtualMachinesInParallel.Track1.csproj` |
-| Track 2 ARM | `Program.cs` | `CreateVirtualMachinesInParallel.csproj` |
+| Track 2 legacy ARM | `Program.cs` | `CreateVirtualMachinesInParallel.csproj` |
+| Track 2 latest ARM | `Program.cs` | `CreateVirtualMachinesInParallel.Track2Latest.csproj` |
 
 ## Getting Started
 
@@ -110,6 +111,9 @@ cd samples/compute/create-virtual-machines-in-parallel
 ./run-benchmarks.sh
 BENCHMARK_FRAMEWORK=netcoreapp3.1 ./run-benchmarks.sh
 BENCHMARK_FRAMEWORK=net10.0 ./run-benchmarks.sh
+
+# Latest Track 2 packages (supports .NET 8 and .NET 10)
+./run-latest-benchmarks.sh
 ```
 
 See [`BENCHMARK_RESULTS.md`](BENCHMARK_RESULTS.md) for recorded results.

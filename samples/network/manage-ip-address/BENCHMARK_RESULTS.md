@@ -122,3 +122,19 @@ Across all three runtimes, Track 2 completed the scenario faster and allocated l
 Elapsed-time differences between runtime rows should be treated cautiously because this benchmark includes loopback HTTP scheduling and was run once per runtime. The within-runtime Track 1 versus Track 2 comparison is the primary result.
 
 These results measure SDK and client-side scenario execution against the mock server. They do not measure Azure service latency.
+
+## Latest Track 2 package rerun
+
+The original results above are retained. A second benchmark project compares Track 1 with the latest stable Track 2 packages available on 2026-08-25:
+
+- `Azure.Identity` 1.21.0
+- `Azure.ResourceManager.Compute` 1.16.0
+- `Azure.ResourceManager.Network` 1.17.0
+- `Azure.ResourceManager.Resources` 1.11.2 where directly referenced
+
+The latest-package benchmark runs in a separate process from the legacy Track 2 benchmark to prevent .NET assembly-version unification from mixing the two package graphs. Current Track 2 dependencies do not support .NET Core 3.1, so latest-package results are limited to .NET 8 and .NET 10.
+
+| Runtime | Track 1 mean | Track 2 latest mean | Track 1 allocated | Track 2 latest allocated | Time saved | Allocation saved |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| .NET 8.0.30 | 20.40 ms | 12.78 ms | 896.44 KB | 489.27 KB | 37.35% | 45.42% |
+| .NET 10.0.11 | 20.22 ms | 12.36 ms | 899.81 KB | 489.90 KB | 38.87% | 45.55% |
