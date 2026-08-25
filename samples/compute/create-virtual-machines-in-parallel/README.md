@@ -16,7 +16,11 @@ This code sample will show you how to create multiple virtual machines in parall
 This project framework provides examples for the following services:
 
 ### Compute
-* You can find the details for the library [here](https://azure.github.io/azure-sdk/releases/latest/#dotnet).
+
+| SDK | Source | Project |
+| --- | --- | --- |
+| Track 1 Fluent | `Program.Track1.cs` | `CreateVirtualMachinesInParallel.Track1.csproj` |
+| Track 2 ARM | `Program.cs` | `CreateVirtualMachinesInParallel.csproj` |
 
 ## Getting Started
 
@@ -100,11 +104,21 @@ cd samples/compute/create-virtual-machines-in-parallel
 
 4. Run the application with the `dotnet run` command.
 
-## This sample shows how to do following operations to creating multiple virtual machines in parallel
-- Create 1 virtual network per region.
-- Create 1 storage account per region.
-- Create 5 virtual machines in 2 regions using defined virtual network and storage account.
-- Create a traffic manager to route traffic across the virtual machines (Wait for Track2 Traffic Manager ready).
+### Running the benchmarks
+
+```bash
+./run-benchmarks.sh
+BENCHMARK_FRAMEWORK=netcoreapp3.1 ./run-benchmarks.sh
+BENCHMARK_FRAMEWORK=net10.0 ./run-benchmarks.sh
+```
+
+See [`BENCHMARK_RESULTS.md`](BENCHMARK_RESULTS.md) for recorded results.
+
+## This sample shows how to create multiple virtual machines in parallel
+- Create one virtual network per region.
+- Create five virtual machines in each of two regions.
+- Create one public IP and NIC per virtual machine.
+- Delete the resource group.
 
 ## More information
 
