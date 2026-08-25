@@ -38,6 +38,9 @@ See the [full benchmark process](network/manage-ip-address/BENCHMARK_PROCESS.md)
 | Manage virtual network | .NET Core 3.1.32 | 18.70% | 59.59% | [Results](network/manage-virtual-network/BENCHMARK_RESULTS.md) |
 | Manage virtual network | .NET 8.0.30 | 41.87% | 62.97% | [Results](network/manage-virtual-network/BENCHMARK_RESULTS.md) |
 | Manage virtual network | .NET 10.0.11 | 39.32% | 63.17% | [Results](network/manage-virtual-network/BENCHMARK_RESULTS.md) |
+| Create virtual machine | .NET Core 3.1.32 | 20.00% | 39.30% | [Results](compute/create-virtual-machine/BENCHMARK_RESULTS.md) |
+| Create virtual machine | .NET 8.0.30 | 29.47% | 44.00% | [Results](compute/create-virtual-machine/BENCHMARK_RESULTS.md) |
+| Create virtual machine | .NET 10.0.11 | 28.18% | 44.72% | [Results](compute/create-virtual-machine/BENCHMARK_RESULTS.md) |
 
 The remaining compute rows will be added only after their generated Track 1 implementations and reruns are complete. Historical Fluent results are intentionally excluded from this final overview.
 
