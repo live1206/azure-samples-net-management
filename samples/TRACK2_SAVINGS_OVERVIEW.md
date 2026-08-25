@@ -1,69 +1,45 @@
-# Track 2 savings versus Track 1 overview
+# Track 2 savings versus generated Track 1 overview
 
-This document aggregates Track 2 versus Track 1 results for six normalized management scenarios. Track 1 is the baseline in every row. Runtime-versus-runtime comparisons and the latest Track 2 package experiment are intentionally excluded.
+This document aggregates the final comparison between Track 2 and the published generated Track 1 management clients commonly used by service teams. Generated Track 1 is the baseline in every row.
 
 ## Track 1 package versions
-
-The original tables use the historical Fluent sample baseline:
-
-- `Microsoft.Azure.Management.Fluent` 1.36.1
-
-Because service teams more commonly used the generated Track 1 clients, the primary baseline is being replaced scenario by scenario with the final published generated packages:
 
 - `Microsoft.Azure.Management.Compute` 61.0.0
 - `Microsoft.Azure.Management.Network` 26.0.0
 - `Microsoft.Azure.Management.ResourceManager` 3.17.4-preview
 
-The generated Track 1 IP-address result is already available in the [detailed IP-address results](network/manage-ip-address/BENCHMARK_RESULTS.md). Until the remaining generated-client reruns are complete, the aggregate tables below continue to show the Fluent 1.36.1 baseline.
+Savings are calculated as:
 
-Savings are calculated as `(Track 1 - Track 2) / Track 1 * 100`. Positive values mean Track 2 consumed less CPU core-time or allocated less managed memory.
+```text
+(Generated Track 1 - Track 2) / Generated Track 1 * 100
+```
 
-## How the comparison was prepared
+A positive value means Track 2 consumed less CPU core-time or allocated less managed memory.
 
-1. Historical Fluent Track 1 implementations were recovered from archived Azure-Samples repositories.
-2. Track 1 and Track 2 were placed in separate projects and normalized to create equivalent resources and perform equivalent operations and cleanup.
-3. Both clients call the same scenario-specific loopback ARM server with deterministic terminal responses, no-op credentials, and retries disabled. The server runs in a separate process.
-4. Sample and benchmark projects use matching `netcoreapp3.1`, `net8.0`, or `net10.0` targets.
-5. BenchmarkDotNet performs one launch, three warmups, ten measured iterations, and ten invocations per iteration.
-6. Client process CPU time is sampled around every scenario invocation using `Process.TotalProcessorTime`. CPU milliseconds per operation measure core-time across all client-process threads.
+## How the comparison is prepared
 
-See the [full benchmark process](network/manage-ip-address/BENCHMARK_PROCESS.md) and linked scenario results for details.
+1. Generated Track 1 source and packages are recovered from the final published Track 1 SDK generation.
+2. Generated Track 1 and Track 2 use separate projects and benchmark processes so their package graphs cannot be unified by the .NET loader.
+3. The implementations are normalized to create equivalent resources and perform equivalent reads, updates, and cleanup.
+4. Both clients call the same scenario-specific loopback ARM server with deterministic terminal responses, no-op credentials, and retries disabled. The server runs in a separate process.
+5. Sample and benchmark assemblies use matching `netcoreapp3.1`, `net8.0`, or `net10.0` targets.
+6. Client CPU core-time is sampled around every scenario invocation using `Process.TotalProcessorTime`. It includes user and kernel CPU consumed by all client-process threads and excludes the mock-server process.
+7. Managed allocations are reported by BenchmarkDotNet 0.14.0. The job uses one launch, three warmups, ten measured iterations, and ten invocations per iteration.
 
-## .NET Core 3.1.32
+See the [full benchmark process](network/manage-ip-address/BENCHMARK_PROCESS.md) and linked scenario results for raw measurements.
 
-| Scenario | CPU core-time saved | Allocation saved | Details |
-| --- | ---: | ---: | --- |
-| Manage IP address | 30.66% | 48.83% | [Results](network/manage-ip-address/BENCHMARK_RESULTS.md) |
-| Manage virtual network | 38.98% | 61.06% | [Results](network/manage-virtual-network/BENCHMARK_RESULTS.md) |
-| Create virtual machine | 36.23% | 43.23% | [Results](compute/create-virtual-machine/BENCHMARK_RESULTS.md) |
-| Manage virtual machine | 43.67% | 59.91% | [Results](compute/manage-virtual-machine/BENCHMARK_RESULTS.md) |
-| Create virtual machines in parallel | 42.95% | 61.06% | [Results](compute/create-virtual-machines-in-parallel/BENCHMARK_RESULTS.md) |
-| Manage virtual-machine extensions | 63.31% | 78.66% | [Results](compute/manage-virtual-machine-extension/BENCHMARK_RESULTS.md) |
+## Completed generated Track 1 comparisons
 
-## .NET 8.0.30
+| Scenario | Runtime | CPU core-time saved by Track 2 | Allocation saved by Track 2 | Details |
+| --- | --- | ---: | ---: | --- |
+| Manage IP address | .NET Core 3.1.32 | 20.17% | 54.75% | [Results](network/manage-ip-address/BENCHMARK_RESULTS.md) |
+| Manage IP address | .NET 8.0.30 | 32.75% | 58.82% | [Results](network/manage-ip-address/BENCHMARK_RESULTS.md) |
+| Manage IP address | .NET 10.0.11 | 37.00% | 59.05% | [Results](network/manage-ip-address/BENCHMARK_RESULTS.md) |
 
-| Scenario | CPU core-time saved | Allocation saved | Details |
-| --- | ---: | ---: | --- |
-| Manage IP address | 43.20% | 56.22% | [Results](network/manage-ip-address/BENCHMARK_RESULTS.md) |
-| Manage virtual network | 51.91% | 66.15% | [Results](network/manage-virtual-network/BENCHMARK_RESULTS.md) |
-| Create virtual machine | 40.00% | 49.88% | [Results](compute/create-virtual-machine/BENCHMARK_RESULTS.md) |
-| Manage virtual machine | 55.15% | 66.60% | [Results](compute/manage-virtual-machine/BENCHMARK_RESULTS.md) |
-| Create virtual machines in parallel | 50.60% | 68.04% | [Results](compute/create-virtual-machines-in-parallel/BENCHMARK_RESULTS.md) |
-| Manage virtual-machine extensions | 74.76% | 82.56% | [Results](compute/manage-virtual-machine-extension/BENCHMARK_RESULTS.md) |
-
-## .NET 10.0.11
-
-| Scenario | CPU core-time saved | Allocation saved | Details |
-| --- | ---: | ---: | --- |
-| Manage IP address | 43.82% | 56.37% | [Results](network/manage-ip-address/BENCHMARK_RESULTS.md) |
-| Manage virtual network | 53.75% | 66.22% | [Results](network/manage-virtual-network/BENCHMARK_RESULTS.md) |
-| Create virtual machine | 45.08% | 50.27% | [Results](compute/create-virtual-machine/BENCHMARK_RESULTS.md) |
-| Manage virtual machine | 55.79% | 66.63% | [Results](compute/manage-virtual-machine/BENCHMARK_RESULTS.md) |
-| Create virtual machines in parallel | 56.13% | 67.73% | [Results](compute/create-virtual-machines-in-parallel/BENCHMARK_RESULTS.md) |
-| Manage virtual-machine extensions | 75.45% | 82.57% | [Results](compute/manage-virtual-machine-extension/BENCHMARK_RESULTS.md) |
+The remaining network and compute rows will be added only after their generated Track 1 implementations and reruns are complete. Historical Fluent results are intentionally excluded from this final overview.
 
 ## Scope and interpretation
 
-CPU core-time measures total user and kernel CPU consumed by all threads in the client benchmark process; the mock server's CPU is excluded. It can exceed elapsed wall time when GC, thread-pool work, or explicit parallel operations use multiple cores. Wall-clock comparisons remain in the detailed scenario documents but are intentionally omitted from this overview.
+CPU core-time is the primary cost metric. It can exceed elapsed wall time when GC, thread-pool work, or explicit parallel operations use multiple cores. Allocation values cover managed allocations in the client benchmark process. Neither metric includes mock-server CPU or Azure service behavior.
 
-CPU samples include warmup and measured invocations after global setup, while BenchmarkDotNet's reported wall-time mean is based on its measured iterations. CPU results should therefore be treated as process-level operational estimates rather than cycle-accurate hardware-counter measurements. Scenario complexity differs, so compare percentages primarily within each scenario.
+Scenario complexity and request sequences differ, so compare percentages within a scenario rather than averaging them across scenarios.
