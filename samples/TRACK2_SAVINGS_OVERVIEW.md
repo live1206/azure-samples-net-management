@@ -1,6 +1,20 @@
 # Track 2 savings versus Track 1 overview
 
-This document aggregates Track 2 versus Fluent Track 1 results for six normalized management scenarios. Track 1 is the baseline in every row. Runtime-versus-runtime comparisons and the latest Track 2 package experiment are intentionally excluded.
+This document aggregates Track 2 versus Track 1 results for six normalized management scenarios. Track 1 is the baseline in every row. Runtime-versus-runtime comparisons and the latest Track 2 package experiment are intentionally excluded.
+
+## Track 1 package versions
+
+The original tables use the historical Fluent sample baseline:
+
+- `Microsoft.Azure.Management.Fluent` 1.36.1
+
+Because service teams more commonly used the generated Track 1 clients, the primary baseline is being replaced scenario by scenario with the final published generated packages:
+
+- `Microsoft.Azure.Management.Compute` 61.0.0
+- `Microsoft.Azure.Management.Network` 26.0.0
+- `Microsoft.Azure.Management.ResourceManager` 3.17.4-preview
+
+The generated Track 1 IP-address result is already available in the [detailed IP-address results](network/manage-ip-address/BENCHMARK_RESULTS.md). Until the remaining generated-client reruns are complete, the aggregate tables below continue to show the Fluent 1.36.1 baseline.
 
 Savings are calculated as `(Track 1 - Track 2) / Track 1 * 100`. Positive values mean Track 2 consumed less time, CPU core-time, or managed memory.
 
