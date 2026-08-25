@@ -63,6 +63,16 @@ Track 1 is the baseline for each row.
 
 These values are wall-clock elapsed time, not direct CPU-utilization measurements. They measure SDK-side execution plus loopback response latency, not Azure service latency.
 
+## Generated Track 1 comparison
+
+This rerun uses the final published generated Track 1 clients: Compute 61.0.0, Network 26.0.0, and ResourceManager 3.17.4-preview.
+
+| Runtime | Generated Track 1 CPU ms/op | Track 2 CPU ms/op | CPU saved | Generated Track 1 allocated | Track 2 allocated | Allocation saved |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| .NET Core 3.1.32 | 17.4468 | 14.1844 | 18.70% | 1506.43 KB | 608.76 KB | 59.59% |
+| .NET 8.0.30 | 23.5461 | 13.6879 | 41.87% | 1231.19 KB | 455.89 KB | 62.97% |
+| .NET 10.0.11 | 23.9343 | 14.5239 | 39.32% | 1232.28 KB | 453.85 KB | 63.17% |
+
 ## CPU core-time results
 
 CPU core-time is sampled with `Process.TotalProcessorTime` around each invocation and includes all client-process threads. The mock-server process is excluded.

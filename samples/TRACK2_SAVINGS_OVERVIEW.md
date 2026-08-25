@@ -35,8 +35,11 @@ See the [full benchmark process](network/manage-ip-address/BENCHMARK_PROCESS.md)
 | Manage IP address | .NET Core 3.1.32 | 20.17% | 54.75% | [Results](network/manage-ip-address/BENCHMARK_RESULTS.md) |
 | Manage IP address | .NET 8.0.30 | 32.75% | 58.82% | [Results](network/manage-ip-address/BENCHMARK_RESULTS.md) |
 | Manage IP address | .NET 10.0.11 | 37.00% | 59.05% | [Results](network/manage-ip-address/BENCHMARK_RESULTS.md) |
+| Manage virtual network | .NET Core 3.1.32 | 18.70% | 59.59% | [Results](network/manage-virtual-network/BENCHMARK_RESULTS.md) |
+| Manage virtual network | .NET 8.0.30 | 41.87% | 62.97% | [Results](network/manage-virtual-network/BENCHMARK_RESULTS.md) |
+| Manage virtual network | .NET 10.0.11 | 39.32% | 63.17% | [Results](network/manage-virtual-network/BENCHMARK_RESULTS.md) |
 
-The remaining network and compute rows will be added only after their generated Track 1 implementations and reruns are complete. Historical Fluent results are intentionally excluded from this final overview.
+The remaining compute rows will be added only after their generated Track 1 implementations and reruns are complete. Historical Fluent results are intentionally excluded from this final overview.
 
 ## Scope and interpretation
 
