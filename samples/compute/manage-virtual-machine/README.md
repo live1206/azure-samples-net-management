@@ -16,7 +16,11 @@ This code sample will show you how to manage a Virtual Machine using Azure SDK f
 This project framework provides examples for the following services:
 
 ### Compute
-* You can find the details for the library [here](https://azure.github.io/azure-sdk/releases/latest/#dotnet).
+
+| SDK | Source | Project |
+| --- | --- | --- |
+| Track 1 Fluent | `Program.Track1.cs` | `ManageVMSample.Track1.csproj` |
+| Track 2 ARM | `Program.cs` | `ManageVMSample.csproj` |
 
 ## Getting Started
 
@@ -100,9 +104,18 @@ cd samples/compute/manage-virtual-machine
 
 4. Run the application with the `dotnet run` command.
 
+### Running the benchmarks
+
+```bash
+./run-benchmarks.sh
+BENCHMARK_FRAMEWORK=netcoreapp3.1 ./run-benchmarks.sh
+BENCHMARK_FRAMEWORK=net10.0 ./run-benchmarks.sh
+```
+
+See [`BENCHMARK_RESULTS.md`](BENCHMARK_RESULTS.md) for recorded results.
+
 ## This sample shows how to do following operations to manage a Virtual Machine
  - Create a virtual machine with managed OS Disk
- - Start a virtual machine
  - Stop a virtual machine
  - Restart a virtual machine
  - Update a virtual machine
