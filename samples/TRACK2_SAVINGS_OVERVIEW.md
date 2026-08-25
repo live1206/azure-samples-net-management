@@ -10,6 +10,17 @@ The percentage saved is calculated as:
 
 A positive value means Track 2 used less wall-clock time or allocated less managed memory than Track 1. Runtime-versus-runtime comparisons are intentionally excluded from this overview.
 
+## How the comparison was prepared
+
+1. **Recover Track 1 history.** The consolidated repository often starts with Track 2, so the previous Fluent implementations were located in the archived standalone Azure-Samples repositories and pinned to their last Track 1 revisions, generally using `Microsoft.Azure.Management.Fluent` 1.36.1.
+2. **Keep both SDKs side by side.** Each scenario has separate Track 1 and Track 2 source and project files so their package graphs do not interfere with each other.
+3. **Normalize the scenario.** The implementations were adjusted to create equivalent resources, use the same regions, names, images, sizes, payload settings, reads, updates, and cleanup steps. Implicit Fluent convenience operations were made explicit where necessary. Known incomplete Track 2 flows were corrected before measurement.
+4. **Use matching target frameworks.** Track 1, Track 2, and BenchmarkDotNet projects all target `netcoreapp3.1`, `net8.0`, and `net10.0`. Each run loads sample assemblies built for that same target framework.
+5. **Replace Azure with deterministic local responses.** Both SDKs call the same scenario-specific loopback ARM server with no-op credentials, retries disabled, terminal succeeded responses, and in-memory resource state. The server runs in a separate process, and client creation and server startup occur outside the measured operation.
+6. **Measure the complete normalized workflow.** BenchmarkDotNet 0.14.0 runs one launch, three warmups, ten measured iterations, and ten invocations per iteration. Track 1 is the baseline within each runtime, using `(Track 1 - Track 2) / Track 1 * 100`.
+
+See the [full benchmark process](network/manage-ip-address/BENCHMARK_PROCESS.md) and each scenario's linked result document for implementation details and raw measurements.
+
 ## .NET Core 3.1.32
 
 | Scenario | Track 2 time saved | Track 2 allocation saved | Detailed results |
