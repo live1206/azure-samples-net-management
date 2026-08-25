@@ -13,4 +13,14 @@
     <MSBuildProjectExtensionsPath>obj/benchmarks/</MSBuildProjectExtensionsPath>
     <BaseOutputPath>bin/benchmarks/</BaseOutputPath>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(MSBuildProjectName)' == 'ManageIPAddress.Track1Generated'">
+    <BaseIntermediateOutputPath>obj/track1-generated/</BaseIntermediateOutputPath>
+    <MSBuildProjectExtensionsPath>obj/track1-generated/</MSBuildProjectExtensionsPath>
+    <BaseOutputPath>bin/track1-generated/</BaseOutputPath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(MSBuildProjectName)' == 'ManageIPAddress.GeneratedTrack1Benchmarks'">
+    <BaseIntermediateOutputPath>obj/generated-benchmarks/</BaseIntermediateOutputPath>
+    <MSBuildProjectExtensionsPath>obj/generated-benchmarks/</MSBuildProjectExtensionsPath>
+    <BaseOutputPath>bin/generated-benchmarks/</BaseOutputPath>
+  </PropertyGroup>
 </Project>

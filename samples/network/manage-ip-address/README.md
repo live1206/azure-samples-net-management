@@ -21,7 +21,8 @@ The two implementations are kept side by side so the same scenario can be compar
 
 | SDK | Source | Project |
 | --- | --- | --- |
-| Track 1 (`Microsoft.Azure.Management.Fluent`) | `Program.Track1.cs` | `ManageIPAddress.Track1.csproj` |
+| Track 1 generated (`Microsoft.Azure.Management.*`) | `Program.Track1Generated.cs` | `ManageIPAddress.Track1Generated.csproj` |
+| Track 1 Fluent (`Microsoft.Azure.Management.Fluent`) | `Program.Track1.cs` | `ManageIPAddress.Track1.csproj` |
 | Track 2 (`Azure.ResourceManager.*`) | `Program.cs` | `ManageIPAddress.csproj` |
 
 ## Getting Started
@@ -93,6 +94,9 @@ DOTNET_ROLL_FORWARD=Major dotnet run --project ManageIPAddress.Track1.csproj
 
 # Track 2
 dotnet run --project ManageIPAddress.csproj
+
+# Generated Track 1 benchmark
+./run-generated-track1-benchmarks.sh
 ```
 
 `DOTNET_ROLL_FORWARD=Major` is only needed when the .NET Core 3.1 runtime is not installed.

@@ -123,6 +123,18 @@ Elapsed-time differences between runtime rows should be treated cautiously becau
 
 These results measure SDK and client-side scenario execution against the mock server. They do not measure Azure service latency.
 
+## Generated Track 1 comparison
+
+This rerun replaces the Fluent baseline with the final published generated Track 1 clients: `Microsoft.Azure.Management.Compute` 61.0.0, `Microsoft.Azure.Management.Network` 26.0.0, and `Microsoft.Azure.Management.ResourceManager` 3.17.4-preview.
+
+| Runtime | Generated Track 1 mean | Track 2 mean | Wall time saved | Generated Track 1 allocated | Track 2 allocated | Allocation saved | Generated Track 1 CPU ms/op | Track 2 CPU ms/op | CPU core-time saved |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| .NET Core 3.1.32 | 15.92 ms | 11.86 ms | 25.50% | 1210.10 KB | 547.60 KB | 54.75% | 16.5248 | 13.1915 | 20.17% |
+| .NET 8.0.30 | 19.20 ms | 12.35 ms | 35.68% | 959.72 KB | 395.17 KB | 58.82% | 20.3546 | 13.6879 | 32.75% |
+| .NET 10.0.11 | 18.95 ms | 12.12 ms | 36.04% | 960.50 KB | 393.30 KB | 59.05% | 20.7327 | 13.0625 | 37.00% |
+
+The generated Track 1 benchmark runs in its own project and process to avoid assembly unification with Fluent dependencies.
+
 ## CPU core-time results
 
 CPU core-time is sampled with `Process.TotalProcessorTime` around each invocation and includes all client-process threads. The mock-server process is excluded.
