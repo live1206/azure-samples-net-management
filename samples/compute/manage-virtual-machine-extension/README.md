@@ -16,7 +16,11 @@ This code sample will show you how to manage a Virtual Machine using Azure SDK f
 This project framework provides examples for the following services:
 
 ### Compute
-* You can find the details for the library [here](https://azure.github.io/azure-sdk/releases/latest/#dotnet).
+
+| SDK | Source | Project |
+| --- | --- | --- |
+| Track 1 Fluent | `Program.Track1.cs` | `ManageVMExtension.Track1.csproj` |
+| Track 2 ARM | `Program.cs` | `ManageVMExtension.csproj` |
 
 ## Getting Started
 
@@ -93,24 +97,28 @@ git clone https://github.com/Azure-Samples/azure-samples-net-management.git
 
 2. Switch to the project folder:
 ```bash
-cd samples/compute/manage-virtual-machine
+cd samples/compute/manage-virtual-machine-extension
 ```
 
 3. Replace all the ```<password>``` placeholder with a valid password in the Program.cs file.
 
 4. Run the application with the `dotnet run` command.
 
-## This sample shows how to do following operations to manage a Virtual Machine
- - Create a virtual machine with managed OS Disk
- - Start a virtual machine
- - Stop a virtual machine
- - Restart a virtual machine
- - Update a virtual machine
- - Tag a virtual machine (there are many possible variations here)
-   - Attach data disks
-   - Detach data disks
- - List virtual machines
- - Delete a virtual machine.
+### Running the benchmarks
+
+```bash
+./run-benchmarks.sh
+BENCHMARK_FRAMEWORK=netcoreapp3.1 ./run-benchmarks.sh
+BENCHMARK_FRAMEWORK=net10.0 ./run-benchmarks.sh
+```
+
+See [`BENCHMARK_RESULTS.md`](BENCHMARK_RESULTS.md) for recorded results.
+
+## This sample shows how to manage virtual-machine extensions
+- Create Linux and Windows virtual machines.
+- Create and replace VMAccess extensions.
+- Create a Linux custom-script extension.
+- Clean up the resource group and extensions.
 
 ## More information
 
