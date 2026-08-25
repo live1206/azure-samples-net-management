@@ -9,6 +9,7 @@ using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Configs;
 using BenchmarkDotNet.Order;
 using BenchmarkDotNet.Running;
+using ManagementBenchmarks;
 using Microsoft.Azure.Management.Fluent;
 using System;
 using System.IO;
@@ -50,6 +51,7 @@ namespace ManageIPAddress.Benchmarks
                 }
             }
 
+            CpuTimeRecorder.Reset();
             _track1Client = Track1Program.CreateMockClient(_mockEndpoint, SubscriptionId);
             _track2Client = Track2Program.CreateMockClient(_mockEndpoint, SubscriptionId);
         }
@@ -61,7 +63,7 @@ namespace ManageIPAddress.Benchmarks
             Console.SetOut(TextWriter.Null);
             try
             {
-                Track1Program.RunSample(_track1Client, AdminPassword);
+                CpuTimeRecorder.Measure(() => Track1Program.RunSample(_track1Client, AdminPassword));
             }
             finally
             {
@@ -76,12 +78,18 @@ namespace ManageIPAddress.Benchmarks
             Console.SetOut(TextWriter.Null);
             try
             {
-                await Track2Program.RunSample(_track2Client, SubscriptionId, AdminPassword);
+                await CpuTimeRecorder.MeasureAsync(() => Track2Program.RunSample(_track2Client, SubscriptionId, AdminPassword));
             }
             finally
             {
                 Console.SetOut(originalOutput);
             }
+        }
+
+        [GlobalCleanup]
+        public void ReportCpuUsage()
+        {
+            CpuTimeRecorder.Report();
         }
 
         private static string EnsureTrailingSlash(string endpoint)

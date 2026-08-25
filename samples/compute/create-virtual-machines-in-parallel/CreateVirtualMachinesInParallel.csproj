@@ -13,6 +13,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Remove="CpuTimeDiagnoser.cs" />
     <Compile Remove="Program.Benchmarks.cs" />
     <Compile Remove="Program.MockServer.cs" />
     <Compile Remove="Program.Track1.cs" />

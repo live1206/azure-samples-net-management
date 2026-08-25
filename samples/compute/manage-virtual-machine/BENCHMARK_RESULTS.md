@@ -40,3 +40,13 @@ Track 1 is the baseline.
 | Track 2 ARM | .NET 10.0.11 | -6.38% | 25.64% |
 
 These are wall-clock client-scenario measurements against a loopback server, not direct CPU-utilization or Azure service-latency measurements.
+
+## CPU core-time results
+
+CPU core-time is sampled with `Process.TotalProcessorTime` around each invocation. Average vCores are CPU core-time divided by measured wall time. The mock-server process is excluded.
+
+| Runtime | Track 1 CPU ms/op | Track 2 CPU ms/op | CPU saved by Track 2 | Track 1 avg vCores | Track 2 avg vCores |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| .NET Core 3.1.32 | 22.4113 | 12.6241 | 43.67% | 0.9694 | 0.8957 |
+| .NET 8.0.30 | 30.9929 | 13.9007 | 55.15% | 1.1060 | 0.9975 |
+| .NET 10.0.11 | 29.2794 | 12.9444 | 55.79% | 1.0720 | 0.9394 |

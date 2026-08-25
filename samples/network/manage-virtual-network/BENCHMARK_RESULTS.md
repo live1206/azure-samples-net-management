@@ -62,3 +62,13 @@ Track 1 is the baseline for each row.
 | Track 2 ARM | .NET 10.0.11 | 12.49 ms | 13.12 ms | -5.04% | 24.37% |
 
 These values are wall-clock elapsed time, not direct CPU-utilization measurements. They measure SDK-side execution plus loopback response latency, not Azure service latency.
+
+## CPU core-time results
+
+CPU core-time is sampled with `Process.TotalProcessorTime` around each invocation. Average vCores are CPU core-time divided by measured wall time. The mock-server process is excluded.
+
+| Runtime | Track 1 CPU ms/op | Track 2 CPU ms/op | CPU saved by Track 2 | Track 1 avg vCores | Track 2 avg vCores |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| .NET Core 3.1.32 | 22.1986 | 13.5461 | 38.98% | 0.9490 | 0.8932 |
+| .NET 8.0.30 | 27.8723 | 13.4043 | 51.91% | 1.0685 | 0.9494 |
+| .NET 10.0.11 | 29.4816 | 13.6362 | 53.75% | 1.1139 | 0.9533 |
