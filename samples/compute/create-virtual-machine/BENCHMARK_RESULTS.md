@@ -44,10 +44,10 @@ These are wall-clock client-scenario measurements against a loopback server, not
 
 ## CPU core-time results
 
-CPU core-time is sampled with `Process.TotalProcessorTime` around each invocation. Average vCores are CPU core-time divided by measured wall time. The mock-server process is excluded.
+CPU core-time is sampled with `Process.TotalProcessorTime` around each invocation and includes all client-process threads. The mock-server process is excluded.
 
-| Runtime | Track 1 CPU ms/op | Track 2 CPU ms/op | CPU saved by Track 2 | Track 1 avg vCores | Track 2 avg vCores |
-| --- | ---: | ---: | ---: | ---: | ---: |
-| .NET Core 3.1.32 | 9.7872 | 6.2411 | 36.23% | 0.9807 | 0.9103 |
-| .NET 8.0.30 | 9.5745 | 5.7447 | 40.00% | 0.9266 | 0.9425 |
-| .NET 10.0.11 | 10.0807 | 5.5360 | 45.08% | 0.9089 | 0.8806 |
+| Runtime | Track 1 CPU ms/op | Track 2 CPU ms/op | CPU saved by Track 2 |
+| --- | ---: | ---: | ---: |
+| .NET Core 3.1.32 | 9.7872 | 6.2411 | 36.23% |
+| .NET 8.0.30 | 9.5745 | 5.7447 | 40.00% |
+| .NET 10.0.11 | 10.0807 | 5.5360 | 45.08% |

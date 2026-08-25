@@ -310,7 +310,7 @@ Runtime saving = (.NET Core 3.1 - newer runtime) / .NET Core 3.1 * 100
 
 Do not describe a Track 2 versus Track 1 percentage as a .NET 10 versus .NET Core 3.1 percentage. Include the underlying mean values in percentage tables to make the baseline unambiguous.
 
-BenchmarkDotNet's `Mean` is wall-clock elapsed time. It is not direct CPU consumption. The benchmark projects therefore also wrap every invocation with a process CPU recorder based on `Process.TotalProcessorTime`. The recorder reports CPU milliseconds per operation and average vCores (`CPU core-time / measured wall time`) across all client-process threads. Because the mock server runs out of process, its CPU is excluded. These process-level samples are suitable for estimating vCore cost; hardware counters can be added when cycle-level precision and platform permissions are available.
+BenchmarkDotNet's `Mean` is wall-clock elapsed time. It is not direct CPU consumption. The benchmark projects therefore also wrap every invocation with a process CPU recorder based on `Process.TotalProcessorTime`. The recorder reports CPU milliseconds per operation across all client-process threads. Because the mock server runs out of process, its CPU is excluded. These process-level samples are suitable for estimating vCore cost; hardware counters can be added when cycle-level precision and platform permissions are available.
 
 ## 11. Validate before recording results
 
