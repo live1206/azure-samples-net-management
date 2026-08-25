@@ -20,8 +20,7 @@ This project framework provides examples for the following services:
 | SDK | Source | Project |
 | --- | --- | --- |
 | Track 1 Fluent | `Program.Track1.cs` | `CreateVMSample.Track1.csproj` |
-| Track 2 legacy ARM | `Program.cs` | `CreateVMSample.csproj` |
-| Track 2 latest ARM | `Program.cs` | `CreateVMSample.Track2Latest.csproj` |
+| Track 2 ARM | `Program.cs` | `CreateVMSample.csproj` |
 
 ## Getting Started
 
@@ -118,9 +117,6 @@ dotnet run
 ./run-benchmarks.sh
 BENCHMARK_FRAMEWORK=netcoreapp3.1 ./run-benchmarks.sh
 BENCHMARK_FRAMEWORK=net10.0 ./run-benchmarks.sh
-
-# Latest Track 2 packages (supports .NET 8 and .NET 10)
-./run-latest-benchmarks.sh
 ```
 
 See [`BENCHMARK_RESULTS.md`](BENCHMARK_RESULTS.md) for the recorded results.

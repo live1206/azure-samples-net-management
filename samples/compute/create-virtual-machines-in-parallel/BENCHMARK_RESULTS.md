@@ -40,19 +40,3 @@ Track 1 is the baseline. Allocation percentages are based on BenchmarkDotNet's r
 | Track 2 ARM | .NET 10.0.11 | -0.65% | 27.34% |
 
 These are wall-clock measurements against a loopback server, not direct CPU-utilization or Azure service-latency measurements.
-
-## Latest Track 2 package rerun
-
-The original results above are retained. A second benchmark project compares Track 1 with the latest stable Track 2 packages available on 2026-08-25:
-
-- `Azure.Identity` 1.21.0
-- `Azure.ResourceManager.Compute` 1.16.0
-- `Azure.ResourceManager.Network` 1.17.0
-- `Azure.ResourceManager.Resources` 1.11.2 where directly referenced
-
-The latest-package benchmark runs in a separate process from the legacy Track 2 benchmark to prevent .NET assembly-version unification from mixing the two package graphs. Current Track 2 dependencies do not support .NET Core 3.1, so latest-package results are limited to .NET 8 and .NET 10.
-
-| Runtime | Track 1 mean | Track 2 latest mean | Track 1 allocated | Track 2 latest allocated | Time saved | Allocation saved |
-| --- | ---: | ---: | ---: | ---: | ---: | ---: |
-| .NET 8.0.30 | 10.288 ms | 7.679 ms | 3.14 MB | 1.33 MB | 25.36% | 57.64% |
-| .NET 10.0.11 | 10.699 ms | 7.208 ms | 3.14 MB | 1.33 MB | 32.63% | 57.64% |

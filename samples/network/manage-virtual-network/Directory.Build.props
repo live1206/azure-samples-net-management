@@ -14,14 +14,4 @@
     <MSBuildProjectExtensionsPath>obj/benchmarks/</MSBuildProjectExtensionsPath>
     <BaseOutputPath>bin/benchmarks/</BaseOutputPath>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(MSBuildProjectName)' == 'ManageVirtualNetwork.Track2Latest'">
-    <BaseIntermediateOutputPath>obj/track2-latest/</BaseIntermediateOutputPath>
-    <MSBuildProjectExtensionsPath>obj/track2-latest/</MSBuildProjectExtensionsPath>
-    <BaseOutputPath>bin/track2-latest/</BaseOutputPath>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(MSBuildProjectName)' == 'ManageVirtualNetwork.LatestBenchmarks'">
-    <BaseIntermediateOutputPath>obj/latest-benchmarks/</BaseIntermediateOutputPath>
-    <MSBuildProjectExtensionsPath>obj/latest-benchmarks/</MSBuildProjectExtensionsPath>
-    <BaseOutputPath>bin/latest-benchmarks/</BaseOutputPath>
-  </PropertyGroup>
 </Project>

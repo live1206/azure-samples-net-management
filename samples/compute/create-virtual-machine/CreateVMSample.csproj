@@ -7,7 +7,6 @@
   
   <ItemGroup>
     <Compile Remove="Program.Benchmarks.cs" />
-    <Compile Remove="Program.LatestBenchmarks.cs" />
     <Compile Remove="Program.MockServer.cs" />
     <Compile Remove="Program.Track1.cs" />
   </ItemGroup>

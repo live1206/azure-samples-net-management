@@ -20,8 +20,7 @@ This project framework provides examples for the following services:
 | SDK | Source | Project |
 | --- | --- | --- |
 | Track 1 (`Microsoft.Azure.Management.Fluent`) | `Program.Track1.cs` | `ManageVirtualNetwork.Track1.csproj` |
-| Track 2 legacy (`Azure.ResourceManager.*`) | `Program.cs` | `ManageVirtualNetwork.csproj` |
-| Track 2 latest (`Azure.ResourceManager.*`) | `Program.cs` | `ManageVirtualNetwork.Track2Latest.csproj` |
+| Track 2 (`Azure.ResourceManager.*`) | `Program.cs` | `ManageVirtualNetwork.csproj` |
 
 ## Getting Started
 
@@ -116,9 +115,6 @@ mock server and benchmark together with:
 
 BENCHMARK_FRAMEWORK=netcoreapp3.1 ./run-benchmarks.sh
 BENCHMARK_FRAMEWORK=net10.0 ./run-benchmarks.sh
-
-# Latest Track 2 packages (supports .NET 8 and .NET 10)
-./run-latest-benchmarks.sh
 ```
 
 See [`BENCHMARK_RESULTS.md`](BENCHMARK_RESULTS.md) for recorded results and

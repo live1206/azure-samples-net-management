@@ -188,22 +188,12 @@ Client factory methods such as `CreateMockClient` make it possible for the bench
 
 ## 7. Create the BenchmarkDotNet project
 
-The legacy Track 2 benchmark project is:
+The benchmark project is:
 
 ```text
 ManageIPAddress.Benchmarks.csproj
 Program.Benchmarks.cs
 ```
-
-When comparing a second Track 2 package set, use a separate project and process:
-
-```text
-ManageIPAddress.Track2Latest.csproj
-ManageIPAddress.LatestBenchmarks.csproj
-Program.LatestBenchmarks.cs
-```
-
-Do not reference legacy and latest versions of the same Azure SDK assemblies from one benchmark executable. The default .NET load context unifies assemblies by identity and can silently load one version for both methods, invalidating the comparison.
 
 It references both projects using aliases because both sample assemblies contain `ManageIPAddress.Program`:
 
