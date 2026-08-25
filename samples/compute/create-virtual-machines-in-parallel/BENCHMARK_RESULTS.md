@@ -41,6 +41,16 @@ Track 1 is the baseline. Allocation percentages are based on BenchmarkDotNet's r
 
 These are wall-clock measurements against a loopback server, not direct CPU-utilization or Azure service-latency measurements.
 
+## Generated Track 1 comparison
+
+This rerun uses generated Track 1 Compute 61.0.0, Network 26.0.0, and ResourceManager 3.17.4-preview clients.
+
+| Runtime | Generated Track 1 CPU ms/op | Track 2 CPU ms/op | CPU saved | Generated Track 1 allocated | Track 2 allocated | Allocation saved |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| .NET Core 3.1.32 | 40.9220 | 27.7305 | 32.24% | 3.95 MB | 1.40 MB | 64.56% |
+| .NET 8.0.30 | 53.9007 | 26.7376 | 50.39% | 3.35 MB | 1.01 MB | 69.85% |
+| .NET 10.0.11 | 69.4683 | 27.9764 | 59.73% | 3.31 MB | 1.01 MB | 69.49% |
+
 ## CPU core-time results
 
 CPU core-time is sampled with `Process.TotalProcessorTime` around each invocation and includes all client-process threads. The mock-server process is excluded.

@@ -41,6 +41,16 @@ Track 1 is the baseline.
 
 These are wall-clock measurements against a loopback server, not direct CPU-utilization or Azure service-latency measurements. Track 1 extension replacement is expressed through Fluent VM update operations, while Track 2 addresses extension resources directly; that abstraction difference is part of the measured SDK behavior.
 
+## Generated Track 1 comparison
+
+This rerun uses generated Track 1 Compute 61.0.0, Network 26.0.0, and ResourceManager 3.17.4-preview clients.
+
+| Runtime | Generated Track 1 CPU ms/op | Track 2 CPU ms/op | CPU saved | Generated Track 1 allocated | Track 2 allocated | Allocation saved |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| .NET Core 3.1.32 | 16.4539 | 12.3404 | 25.00% | 1122.75 KB | 560.67 KB | 50.06% |
+| .NET 8.0.30 | 20.4255 | 13.8298 | 32.29% | 938.54 KB | 397.54 KB | 57.64% |
+| .NET 10.0.11 | 21.8811 | 13.5003 | 38.30% | 940.91 KB | 396.09 KB | 57.90% |
+
 ## CPU core-time results
 
 CPU core-time is sampled with `Process.TotalProcessorTime` around each invocation and includes all client-process threads. The mock-server process is excluded.

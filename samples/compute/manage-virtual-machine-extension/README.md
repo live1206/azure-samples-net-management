@@ -19,6 +19,7 @@ This project framework provides examples for the following services:
 
 | SDK | Source | Project |
 | --- | --- | --- |
+| Track 1 generated | `Program.Track1Generated.cs` | `ManageVMExtension.Track1Generated.csproj` |
 | Track 1 Fluent | `Program.Track1.cs` | `ManageVMExtension.Track1.csproj` |
 | Track 2 ARM | `Program.cs` | `ManageVMExtension.csproj` |
 
@@ -110,6 +111,9 @@ cd samples/compute/manage-virtual-machine-extension
 ./run-benchmarks.sh
 BENCHMARK_FRAMEWORK=netcoreapp3.1 ./run-benchmarks.sh
 BENCHMARK_FRAMEWORK=net10.0 ./run-benchmarks.sh
+
+# Generated Track 1 versus Track 2
+./run-generated-track1-benchmarks.sh
 ```
 
 See [`BENCHMARK_RESULTS.md`](BENCHMARK_RESULTS.md) for recorded results.

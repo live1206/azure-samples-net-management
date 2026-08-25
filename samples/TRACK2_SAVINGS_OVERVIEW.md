@@ -41,8 +41,17 @@ See the [full benchmark process](network/manage-ip-address/BENCHMARK_PROCESS.md)
 | Create virtual machine | .NET Core 3.1.32 | 20.00% | 39.30% | [Results](compute/create-virtual-machine/BENCHMARK_RESULTS.md) |
 | Create virtual machine | .NET 8.0.30 | 29.47% | 44.00% | [Results](compute/create-virtual-machine/BENCHMARK_RESULTS.md) |
 | Create virtual machine | .NET 10.0.11 | 28.18% | 44.72% | [Results](compute/create-virtual-machine/BENCHMARK_RESULTS.md) |
+| Manage virtual machine | .NET Core 3.1.32 | 31.40% | 54.52% | [Results](compute/manage-virtual-machine/BENCHMARK_RESULTS.md) |
+| Manage virtual machine | .NET 8.0.30 | 24.62% | 60.46% | [Results](compute/manage-virtual-machine/BENCHMARK_RESULTS.md) |
+| Manage virtual machine | .NET 10.0.11 | 51.01% | 60.66% | [Results](compute/manage-virtual-machine/BENCHMARK_RESULTS.md) |
+| Create virtual machines in parallel | .NET Core 3.1.32 | 32.24% | 64.56% | [Results](compute/create-virtual-machines-in-parallel/BENCHMARK_RESULTS.md) |
+| Create virtual machines in parallel | .NET 8.0.30 | 50.39% | 69.85% | [Results](compute/create-virtual-machines-in-parallel/BENCHMARK_RESULTS.md) |
+| Create virtual machines in parallel | .NET 10.0.11 | 59.73% | 69.49% | [Results](compute/create-virtual-machines-in-parallel/BENCHMARK_RESULTS.md) |
+| Manage virtual-machine extensions | .NET Core 3.1.32 | 25.00% | 50.06% | [Results](compute/manage-virtual-machine-extension/BENCHMARK_RESULTS.md) |
+| Manage virtual-machine extensions | .NET 8.0.30 | 32.29% | 57.64% | [Results](compute/manage-virtual-machine-extension/BENCHMARK_RESULTS.md) |
+| Manage virtual-machine extensions | .NET 10.0.11 | 38.30% | 57.90% | [Results](compute/manage-virtual-machine-extension/BENCHMARK_RESULTS.md) |
 
-The remaining compute rows will be added only after their generated Track 1 implementations and reruns are complete. Historical Fluent results are intentionally excluded from this final overview.
+Historical Fluent results are intentionally excluded from this final overview.
 
 ## Scope and interpretation
 
