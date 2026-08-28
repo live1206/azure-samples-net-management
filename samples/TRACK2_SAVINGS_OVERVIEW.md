@@ -4,11 +4,13 @@ This document aggregates the final comparison between Track 2 and the published 
 
 ## Track 1 package versions
 
+The standard sample scenarios use the final published generated Track 1 clients:
+
 - `Microsoft.Azure.Management.Compute` 61.0.0
 - `Microsoft.Azure.Management.Network` 26.0.0
 - `Microsoft.Azure.Management.ResourceManager` 3.17.4-preview
 
-The production SSIS integration-runtime scenario uses the supplied historical versions `Microsoft.Azure.Management.Compute` 24.1.0 and `Microsoft.Azure.Management.DataFactory` 2.3.1.
+The production SSIS scenario uses its original service package versions and is presented separately below.
 
 Savings are calculated as:
 
@@ -52,10 +54,32 @@ See the [full benchmark process](network/manage-ip-address/BENCHMARK_PROCESS.md)
 | Manage virtual-machine extensions | .NET Core 3.1.32 | 25.00% | 50.06% | [Results](compute/manage-virtual-machine-extension/BENCHMARK_RESULTS.md) |
 | Manage virtual-machine extensions | .NET 8.0.30 | 32.29% | 57.64% | [Results](compute/manage-virtual-machine-extension/BENCHMARK_RESULTS.md) |
 | Manage virtual-machine extensions | .NET 10.0.11 | 38.30% | 57.90% | [Results](compute/manage-virtual-machine-extension/BENCHMARK_RESULTS.md) |
-| Manage SSIS integration runtime | .NET 8.0.30 | 6.97% | -15.56% | [Results](datafactory/manage-ssis-integration-runtime/BENCHMARK_RESULTS.md) |
-| Manage SSIS integration runtime | .NET 10.0.11 | 20.15% | -14.92% | [Results](datafactory/manage-ssis-integration-runtime/BENCHMARK_RESULTS.md) |
 
 Historical Fluent results are intentionally excluded from this final overview.
+
+## Production service scenario: Manage SSIS integration runtime
+
+This scenario comes from a real service implementation rather than an Azure SDK sample. Its Track 1 code uses the service's original packages:
+
+- `Microsoft.Azure.Management.Compute` 24.1.0
+- `Microsoft.Azure.Management.DataFactory` 2.3.1
+
+The supplied service also references ResourceManager and SQL Track 1 packages, but this particular execution path does not call them, so they are excluded from the measured project. The equivalent Track 2 implementation uses `Azure.ResourceManager.Compute` 1.16.0 and `Azure.ResourceManager.DataFactory` 1.11.1.
+
+| Runtime | CPU core-time saved by Track 2 | Allocation saved by Track 2 | Details |
+| --- | ---: | ---: | --- |
+| .NET 8.0.30 | 6.97% | -15.56% | [Results](datafactory/manage-ssis-integration-runtime/BENCHMARK_RESULTS.md) |
+| .NET 10.0.11 | 20.15% | -14.92% | [Results](datafactory/manage-ssis-integration-runtime/BENCHMARK_RESULTS.md) |
+
+The improvement is smaller than in the broader sample scenarios for several reasons:
+
+- The old Track 1 Data Factory and Compute clients are lightweight AutoRest operation clients that call service methods directly, without an ARM resource hierarchy.
+- The scenario is small: one integration-runtime create/update, one status request, one start request, and one VM-size list request. Fixed Track 2 pipeline and model overhead is therefore a larger fraction of the total work.
+- Track 2 constructs resource identifiers, resource and collection wrappers, `ArmOperation` state, pageable state, and newer polymorphic Data Factory models.
+- The scenario uses cached clients, so Track 2 does not benefit from improvements in client construction during the measured operation.
+- The newer serialization and resource abstractions reduce CPU core-time, especially on .NET 10, but allocate about 15% more memory for this narrow workflow.
+
+The mock server verified exact request parity: both implementations send the same four methods and paths. Because the initial workload was too short for stable process CPU sampling, the final result uses batches of 100 scenarios, three independent process launches, and 1,500 sampled scenarios per SDK per launch.
 
 ## Scope and interpretation
 
