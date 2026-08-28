@@ -8,6 +8,8 @@ This document aggregates the final comparison between Track 2 and the published 
 - `Microsoft.Azure.Management.Network` 26.0.0
 - `Microsoft.Azure.Management.ResourceManager` 3.17.4-preview
 
+The production SSIS integration-runtime scenario uses the supplied historical versions `Microsoft.Azure.Management.Compute` 24.1.0 and `Microsoft.Azure.Management.DataFactory` 2.3.1.
+
 Savings are calculated as:
 
 ```text
@@ -50,6 +52,8 @@ See the [full benchmark process](network/manage-ip-address/BENCHMARK_PROCESS.md)
 | Manage virtual-machine extensions | .NET Core 3.1.32 | 25.00% | 50.06% | [Results](compute/manage-virtual-machine-extension/BENCHMARK_RESULTS.md) |
 | Manage virtual-machine extensions | .NET 8.0.30 | 32.29% | 57.64% | [Results](compute/manage-virtual-machine-extension/BENCHMARK_RESULTS.md) |
 | Manage virtual-machine extensions | .NET 10.0.11 | 38.30% | 57.90% | [Results](compute/manage-virtual-machine-extension/BENCHMARK_RESULTS.md) |
+| Manage SSIS integration runtime | .NET 8.0.30 | -19.28% | -11.01% | [Results](datafactory/manage-ssis-integration-runtime/BENCHMARK_RESULTS.md) |
+| Manage SSIS integration runtime | .NET 10.0.11 | 5.69% | -10.12% | [Results](datafactory/manage-ssis-integration-runtime/BENCHMARK_RESULTS.md) |
 
 Historical Fluent results are intentionally excluded from this final overview.
 
