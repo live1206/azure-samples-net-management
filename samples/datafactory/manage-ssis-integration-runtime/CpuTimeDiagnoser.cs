@@ -23,18 +23,20 @@ namespace ManagementBenchmarks
             Record(cpuStart);
         }
 
-        public static async Task MeasureAsync(Func<Task> action)
+        public static Task MeasureAsync(Func<Task> action) => MeasureAsync(action, 1);
+
+        public static async Task MeasureAsync(Func<Task> action, int operations)
         {
             TimeSpan cpuStart = CurrentProcess.TotalProcessorTime;
             await action().ConfigureAwait(false);
-            Record(cpuStart);
+            Record(cpuStart, operations);
         }
 
-        private static void Record(TimeSpan cpuStart)
+        private static void Record(TimeSpan cpuStart, int operations = 1)
         {
             CurrentProcess.Refresh();
             _cpuTicks += (CurrentProcess.TotalProcessorTime - cpuStart).Ticks;
-            _operations++;
+            _operations += operations;
         }
 
         public static void Report()

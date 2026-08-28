@@ -21,11 +21,28 @@ builder.WebHost.UseUrls(endpoint);
 
 var app = builder.Build();
 var resources = new ConcurrentDictionary<string, JsonObject>(StringComparer.OrdinalIgnoreCase);
+var requestCounts = new ConcurrentDictionary<string, long>(StringComparer.OrdinalIgnoreCase);
+
+app.Use(async (context, next) =>
+{
+    if (!context.Request.Path.StartsWithSegments("/__mock"))
+    {
+        string key = $"{context.Request.Method} {context.Request.Path}";
+        requestCounts.AddOrUpdate(key, 1, (_, count) => count + 1);
+    }
+    await next();
+});
 
 app.MapGet("/__mock/health", () => Results.Ok(new { status = "ready" }));
+app.MapGet("/__mock/stats", () => Results.Json(new
+{
+    total = requestCounts.Values.Sum(),
+    requests = requestCounts.OrderBy(pair => pair.Key).ToDictionary(pair => pair.Key, pair => pair.Value)
+}));
 app.MapPost("/__mock/reset", () =>
 {
     resources.Clear();
+    requestCounts.Clear();
     return Results.NoContent();
 });
 
